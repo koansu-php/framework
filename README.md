@@ -1,2 +1,5 @@
-# framework
-The monorepo for all koansu own managed framework packages
+
+
+# Koansu
+
+A framework for professional php developers.
