@@ -60,7 +60,7 @@ trait HookableTrait
      * @param string|object $event
      * @param string $position ('after'|'before'|'')
      *
-     * @return array
+     * @return callable[]
      **/
     public function getListeners($event, string $position = '') : iterable
     {
@@ -142,7 +142,7 @@ trait HookableTrait
     protected function storeListener($event, callable $listener, array &$listeners)
     {
         if (!is_array($event)) {
-            $key = $this->confirmEvent($event);
+            $key = $this->confirmHook($event);
 
             if (!isset($listeners[$key])) {
                 $listeners[$key] = [];
@@ -160,18 +160,18 @@ trait HookableTrait
      * Check if the event is supported. Throw an exception if this object
      * has method hooks
      *
-     * @param string|object $event
+     * @param string|object $hook
      *
      * @return string
      *
      * @throws HookNotFoundException
      **/
-    protected function confirmEvent($event) : string
+    protected function confirmHook($hook) : string
     {
-        $eventName = is_object($event) ? get_class($event) : $event;
-        if ($this instanceof HasMethodHooks && !in_array($eventName, $this->methodHooks())) {
-            throw new HookNotFoundException("Event or method '$eventName' is not hookable");
+        $hookName = is_object($hook) ? get_class($hook) : $hook;
+        if ($this instanceof HasMethodHooks && !in_array($hookName, $this->methodHooks())) {
+            throw new HookNotFoundException("Event or method '$hookName' is not hookable");
         }
-        return $eventName;
+        return $hookName;
     }
 }
