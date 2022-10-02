@@ -355,6 +355,7 @@ class Sequence implements Countable, IteratorAggregate, ArrayAccess
      *
      * @return mixed
      **/
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         if (isset($this->source[$offset])) {
@@ -369,6 +370,7 @@ class Sequence implements Countable, IteratorAggregate, ArrayAccess
      * @param int   $offset
      * @param mixed $value
      **/
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         $this->insert($offset, $value);
@@ -379,6 +381,7 @@ class Sequence implements Countable, IteratorAggregate, ArrayAccess
      *
      * @param int $offset
      **/
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         $this->pop($offset);

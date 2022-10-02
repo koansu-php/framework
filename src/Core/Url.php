@@ -443,6 +443,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return mixed
      **/
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->query[$offset];
@@ -454,6 +455,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      * @param mixed $offset
      * @param mixed $value
      **/
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         throw new RuntimeException('An url is immutable, you can only get its query values');
@@ -464,6 +466,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @param mixed $offset
      **/
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         throw new RuntimeException('An url is immutable, you can only get its query values');

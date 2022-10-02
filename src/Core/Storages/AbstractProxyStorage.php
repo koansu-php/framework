@@ -43,6 +43,7 @@ abstract class AbstractProxyStorage implements Storage
      *
      * @return mixed
      **/
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->storage->offsetGet($offset);
@@ -56,6 +57,7 @@ abstract class AbstractProxyStorage implements Storage
      *
      * @return void
      **/
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         $this->storage->offsetSet($offset, $value);
@@ -69,6 +71,7 @@ abstract class AbstractProxyStorage implements Storage
      *
      * @return void
      **/
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         $this->storage->offsetUnset($offset);

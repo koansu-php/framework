@@ -66,6 +66,7 @@ class SmallDataCachedStorage extends AbstractProxyStorage implements IteratorAgg
      *
      * @return mixed
      **/
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         $all = $this->__toArray();
@@ -83,6 +84,7 @@ class SmallDataCachedStorage extends AbstractProxyStorage implements IteratorAgg
      *
      * @return void
      **/
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         parent::offsetSet($offset,$value);
@@ -97,6 +99,7 @@ class SmallDataCachedStorage extends AbstractProxyStorage implements IteratorAgg
      *
      * @return void
      **/
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         parent::offsetUnset($offset);

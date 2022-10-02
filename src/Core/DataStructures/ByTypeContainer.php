@@ -90,6 +90,7 @@ class ByTypeContainer implements ArrayAccess, IteratorAggregate, Countable
      * </p>
      * @return mixed Can return all value types.
      */
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->extensions[$offset];
@@ -106,6 +107,7 @@ class ByTypeContainer implements ArrayAccess, IteratorAggregate, Countable
      * </p>
      * @return void
      */
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         $this->extensions[$offset] = $value;
@@ -120,6 +122,7 @@ class ByTypeContainer implements ArrayAccess, IteratorAggregate, Countable
      * </p>
      * @return void
      */
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         unset($this->extensions[$offset]);

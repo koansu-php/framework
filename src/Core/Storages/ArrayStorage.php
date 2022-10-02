@@ -57,6 +57,7 @@ class ArrayStorage implements Storage, IteratorAggregate, Arrayable
      *
      * @return mixed
      **/
+    #[\ReturnTypeWillChange]
     public function offsetGet($offset)
     {
         return $this->attributes[$offset];
@@ -68,6 +69,7 @@ class ArrayStorage implements Storage, IteratorAggregate, Arrayable
      * @param mixed $offset
      * @param mixed $value
      **/
+    #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
     {
         $this->attributes[$offset] = $value;
@@ -78,6 +80,7 @@ class ArrayStorage implements Storage, IteratorAggregate, Arrayable
      *
      * @param mixed $offset
      **/
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         unset($this->attributes[$offset]);
