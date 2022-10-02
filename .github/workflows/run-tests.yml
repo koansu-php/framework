@@ -12,7 +12,15 @@ permissions:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
+
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [ '7.3', '7.4']
+        stability: [ prefer-lowest, prefer-stable ]
+
+    name: PHP ${{ matrix.php }} - ${{ matrix.stability }}
 
     steps:
     - uses: actions/checkout@v3
