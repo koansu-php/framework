@@ -6,8 +6,11 @@
 namespace Koansu\Core;
 
 use ArrayAccess;
+use Closure;
 use Countable;
 use Koansu\Core\Contracts\Arrayable;
+use ReflectionException;
+use ReflectionFunction;
 use Throwable;
 use Traversable;
 use TypeError;
@@ -541,6 +544,20 @@ class Type
             }
         }
         return '';
+    }
+
+    /**
+     * This is the counterpart of
+     *
+     * @param Closure $closure
+     * @return string
+     * @noinspection PhpUnhandledExceptionInspection
+     * @noinspection PhpDocMissingThrowsInspection
+     */
+    public static function closureClassId(Closure $closure) : string
+    {
+        $r = new ReflectionFunction($closure);
+        return 'Closure:' . $r->getFileName() . ':' . $r->getStartLine() . ':' . $r->getEndLine();
     }
 
     /**

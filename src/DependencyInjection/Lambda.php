@@ -797,10 +797,7 @@ class Lambda
             return get_class($callable);
         }
 
-        // A closure will not throw an exception here
-        /** @noinspection PhpUnhandledExceptionInspection */
-        $r = new ReflectionFunction($callable);
-        return 'Closure:' . $r->getFileName() . ':' . $r->getStartLine() . ':' . $r->getEndLine();
+        return Type::closureClassId($callable);
 
     }
 
