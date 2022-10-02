@@ -11,7 +11,6 @@ permissions:
 
 jobs:
   build:
-
     runs-on: ubuntu-20.04
 
     strategy:
@@ -23,25 +22,34 @@ jobs:
     name: PHP ${{ matrix.php }} - ${{ matrix.stability }}
 
     steps:
-    - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Validate composer.json and composer.lock
-      run: composer validate --strict
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, gd, redis-phpredis/phpredis@5.3.5, igbinary, msgpack, lzf, zstd, lz4, memcached
+          ini-values: error_reporting=E_ALL
+          tools: composer:v2
 
-    - name: Cache Composer packages
-      id: composer-cache
-      uses: actions/cache@v3
-      with:
-        path: vendor
-        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-php-
+      - name: Validate composer.json and composer.lock
+        run: composer validate --strict
 
-    - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
 
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
 
-    - name: Run test suite
-      run: vendor/bin/phpunit
+      - name: Run test suite
+        run: vendor/bin/phpunit
