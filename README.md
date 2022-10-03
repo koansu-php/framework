@@ -3,6 +3,7 @@
 
 ![example workflow](https://github.com/koansu-php/framework/actions/workflows/run-tests.yml/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/github/koansu-php/framework/badge.svg?branch=main)](https://coveralls.io/github/koansu-php/framework?branch=main)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 # Koansu
 
