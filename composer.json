@@ -27,7 +27,7 @@
   },
   "replace": {
     "koansu/core": "self.version",
-    "koansu/dependeny-injection": "self.version",
+    "koansu/dependency-injection": "self.version",
     "koansu/testing": "self.version"
   },
   "require-dev": {
