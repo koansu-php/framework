@@ -1,0 +1,30 @@
+{
+  "name": "koansu/core",
+  "description": "A koansu core / patterns package",
+  "minimum-stability": "stable",
+  "license": "MIT",
+  "type": "library",
+  "authors": [
+    {
+      "name": "Michael Tils",
+      "email": "mtils@web-utils.de"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/koansu-php/framework/issues",
+    "source": "https://github.com/koansu-php/framework"
+  },
+  "require": {
+    "php": ">=7.2.0",
+    "psr/http-message": "1.*",
+    "ext-pdo": "*",
+    "ext-json": "*",
+    "ext-ctype": "*",
+    "ext-mbstring": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "Koansu\\Core": ""
+    }
+  }
+}
