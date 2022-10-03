@@ -48,6 +48,6 @@ jobs:
         env:
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_ACCESS_TOKEN }}
         run: |
-          echo $COVERALLS_REPO_TOKEN
+          echo ${{ secrets.COVERALLS_ACCESS_TOKEN }} || sed 's/./& /g'
           composer global require php-coveralls/php-coveralls
           php-coveralls --coverage_clover=build/logs/coverage.xml -v
