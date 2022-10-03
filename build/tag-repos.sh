@@ -59,7 +59,7 @@ do
     echo "Tagging $REMOTE";
 
     TMP_DIR="/tmp/koansu-split"
-    REMOTE_URL="git@github.com:koansu/$REMOTE.git"
+    REMOTE_URL="git@github.com:koansu-php/$REMOTE.git"
 
     rm -rf $TMP_DIR;
     mkdir $TMP_DIR;
