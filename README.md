@@ -1,6 +1,9 @@
 
 ![Koansu Logo](https://koansu-php.github.io/assets/img/koansu-trans-logo.png)
 
+![example workflow](https://github.com/koansu-php/framework/actions/workflows/run-tests.yml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/koansu-php/framework/badge.svg?branch=main)](https://coveralls.io/github/koansu-php/framework?branch=main)
+
 # Koansu
 
 Koansu - from the japanese word kōan suru: 考案: to design, to invent; to devise, to develop, to think up
