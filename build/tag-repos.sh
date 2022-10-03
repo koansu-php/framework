@@ -52,7 +52,7 @@ git tag $VERSION
 git push origin --tags
 
 # Tag Components
-for REMOTE in core depencency-injection testing
+for REMOTE in core dependency-injection testing
 do
     echo ""
     echo ""
