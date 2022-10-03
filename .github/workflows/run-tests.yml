@@ -33,9 +33,6 @@ jobs:
           ini-values: error_reporting=E_ALL
           tools: composer:v2
 
-      - name: Validate composer.json and composer.lock
-        run: composer validate --strict
-
       - name: Cache Composer packages
         id: composer-cache
         uses: actions/cache@v3
@@ -53,3 +50,4 @@ jobs:
 
       - name: Run test suite
         run: vendor/bin/phpunit
+
