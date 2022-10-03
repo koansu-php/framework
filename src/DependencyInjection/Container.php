@@ -15,6 +15,8 @@ use Psr\Container\NotFoundExceptionInterface;
 use ReflectionClass;
 use ReflectionException;
 
+use ReflectionNamedType;
+
 use function call_user_func;
 use function count;
 use function get_class;
@@ -185,11 +187,11 @@ class Container implements ContainerContract
                 continue;
             }
 
-            if (!$class = $param->getClass()) {
+            $type = $param->getType();
+            if (!$type instanceof ReflectionNamedType || $type->isBuiltin()) {
                 continue;
             }
-
-            $className = $class->getName();
+            $className = $type->getName();
 
             if (isset($parameters[$i]) && $parameters[$i] instanceof $className) {
                 $callParams[] = $parameters[$i];
