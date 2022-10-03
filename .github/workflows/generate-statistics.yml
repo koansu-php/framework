@@ -1,4 +1,4 @@
-name: PHP Composer
+name: Statistics
 
 on:
   push:
@@ -39,13 +39,7 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress
 
-      - name: PHPUnit Tests
-        uses: php-actions/phpunit@v3
+      - name: PHPUnit Coverage Creation
+        run: vendor/bin/phpunit --coverage-clover ./build/coverage.xml
         env:
           XDEBUG_MODE: coverage
-        with:
-          bootstrap: vendor/autoload.php
-          configuration: phpunit.xml.dist
-          php_extensions: xdebug
-          args: tests --coverage-clover ./coverage.xml
-
