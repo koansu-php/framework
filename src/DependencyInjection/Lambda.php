@@ -11,6 +11,7 @@ use ReflectionException;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
+use ReflectionNamedType;
 use UnexpectedValueException;
 
 use function array_merge;
@@ -602,8 +603,9 @@ class Lambda
 
         foreach(static::getReflection($callable)->getParameters() as $parameter) {
             $type = null;
-            if ($classReflection = $parameter->getClass()) {
-                $type = $classReflection->getName();
+            $parameterType = $parameter->getType();
+            if ($parameterType instanceof ReflectionNamedType && !$parameterType->isBuiltin()) {
+                $type = $parameterType->getName();
             }
             $parameters[$parameter->getName()] = [
                 'optional' => $parameter->isOptional(),
