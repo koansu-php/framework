@@ -24,7 +24,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Koansu\\Core": ""
+      "Koansu\\Core\\": ""
     }
   }
 }
