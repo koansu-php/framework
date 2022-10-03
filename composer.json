@@ -25,6 +25,11 @@
     "ext-ctype": "*",
     "ext-mbstring": "*"
   },
+  "replace": {
+    "koansu/core": "self.version",
+    "koansu/dependeny-injection": "self.version",
+    "koansu/testing": "self.version"
+  },
   "require-dev": {
     "phpunit/phpunit": "6.*|7.*|8.*|9.*",
     "mockery/mockery": "~1.3",
