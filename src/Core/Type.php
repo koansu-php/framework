@@ -19,6 +19,7 @@ use function array_unique;
 use function basename;
 use function class_exists;
 use function class_parents;
+use function defined;
 use function fclose;
 use function get_parent_class;
 use function implode;
@@ -30,13 +31,16 @@ use function is_int;
 use function is_numeric;
 use function is_subclass_of;
 use function iterator_to_array;
+use function print_r;
 use function strpos;
 use function token_get_all;
+use function token_name;
 use function trait_exists;
 use function trim;
 
 use const T_CLASS;
 use const T_FUNCTION;
+use const T_NAME_QUALIFIED;
 use const T_NAMESPACE;
 use const T_NEW;
 use const T_NS_SEPARATOR;
@@ -399,10 +403,12 @@ class Type
         $startedNamespace = false;
         $startedFunction = false;
         $classTokenSequence = [];
+        $qualifiedNameToken = defined('T_NAME_QUALIFIED') ? T_NAME_QUALIFIED : 265;
 
         while (!feof($handle)) {
 
             $buffer .= fread($handle, 512);
+            /** @noinspection PhpStrFunctionsInspection */
             if (strpos($buffer, '{') === false) {
                 continue;
             }
@@ -414,7 +420,7 @@ class Type
                     continue;
                 }
 
-                $isClassToken = $token[0] === T_CLASS;
+                $isClassToken = ($token[0] === T_CLASS);
 
                 if ($token[0] === T_FUNCTION) {
                     $startedFunction = true;
@@ -444,7 +450,7 @@ class Type
                 }
 
                 if ($startedNamespace) {
-                    if (in_array($token[0], [T_STRING, T_NS_SEPARATOR])) {
+                    if (in_array($token[0], [T_STRING, T_NS_SEPARATOR, $qualifiedNameToken])) {
                         $namespace .= $token[1];
                         continue;
                     }
