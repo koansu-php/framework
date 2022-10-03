@@ -1,10 +1,10 @@
-<?php
+<?php /** @noinspection ALL */
 
 /**
  *  * Created by mtils on 07.11.2021 at 06:34.
  **/
 
-use Ems\Contracts\Core\Hookable;
+use Koansu\Core\Contracts\Hookable;
 
 $test = new class() {};
 

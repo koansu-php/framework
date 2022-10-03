@@ -2,17 +2,16 @@
 
 namespace Koansu\Tests;
 
-use Ems\Contracts\Core\Type;
 use Mockery;
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use Traversable;
+use Koansu\Core\Type;
 
 use function count;
 use function in_array;
 use function is_callable;
 use function realpath;
 use function rtrim;
-use function var_dump;
 
 class TestCase extends BaseTestCase
 {

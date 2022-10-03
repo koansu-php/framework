@@ -23,8 +23,6 @@ use function is_subclass_of;
  * This container is a utility to store handlers or any data by type inheritance.
  * So in a case you need "$this is the handler for objects of this class or this
  * interface" this could be the right utility for this use case.
- *
- * @package Ems\Contracts\Core\Containers
  */
 class ByTypeContainer implements ArrayAccess, IteratorAggregate, Countable
 {

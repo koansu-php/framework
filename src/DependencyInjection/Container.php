@@ -60,8 +60,8 @@ class Container implements ContainerContract
     public function __construct()
     {
         $this->listeners = new ListenerContainer();
-        $this->instance('Ems\Contracts\Core\IOCContainer', $this);
-        $this->instance('Ems\Core\IOCContainer', $this);
+        $this->instance(ContainerContract::class, $this);
+        $this->instance(self::class, $this);
     }
 
     /**
