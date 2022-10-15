@@ -7,15 +7,12 @@ namespace Koansu\Core\DataStructures;
 
 
 use ArrayAccess;
-
 use ArrayIterator;
 use Countable;
 use IteratorAggregate;
-
 use Koansu\Core\Type;
 
 use function array_keys;
-use function is_subclass_of;
 
 /**
  * Class ByTypeContainer
@@ -47,6 +44,7 @@ class ByTypeContainer implements ArrayAccess, IteratorAggregate, Countable
      * @param string $class
      *
      * @return mixed
+     * @noinspection PhpMissingReturnTypeInspection
      */
     public function forInstanceOf(string $class)
     {
@@ -65,7 +63,7 @@ class ByTypeContainer implements ArrayAccess, IteratorAggregate, Countable
     }
 
     /**
-     * Whether a offset exists
+     * Whether an offset exists
      * @link https://php.net/manual/en/arrayaccess.offsetexists.php
      * @param mixed $offset <p>
      * An offset to check for.
@@ -73,7 +71,8 @@ class ByTypeContainer implements ArrayAccess, IteratorAggregate, Countable
      * @return bool true on success or false on failure.
      * </p>
      * <p>
-     * The return value will be casted to boolean if non-boolean was returned.
+     * The return value will be cast to boolean if non-boolean was returned.
+     * @noinspection PhpMissingParamTypeInspection
      */
     public function offsetExists($offset) : bool
     {
@@ -87,6 +86,8 @@ class ByTypeContainer implements ArrayAccess, IteratorAggregate, Countable
      * The offset to retrieve.
      * </p>
      * @return mixed Can return all value types.
+     * @noinspection PhpMissingReturnTypeInspection
+     * @noinspection PhpMissingParamTypeInspection
      */
     #[\ReturnTypeWillChange]
     public function offsetGet($offset)
@@ -104,6 +105,8 @@ class ByTypeContainer implements ArrayAccess, IteratorAggregate, Countable
      * The value to set.
      * </p>
      * @return void
+     * @noinspection PhpMissingReturnTypeInspection
+     * @noinspection PhpMissingParamTypeInspection
      */
     #[\ReturnTypeWillChange]
     public function offsetSet($offset, $value)
@@ -119,6 +122,8 @@ class ByTypeContainer implements ArrayAccess, IteratorAggregate, Countable
      * The offset to unset.
      * </p>
      * @return void
+     * @noinspection PhpMissingReturnTypeInspection
+     * @noinspection PhpMissingParamTypeInspection
      */
     #[\ReturnTypeWillChange]
     public function offsetUnset($offset)

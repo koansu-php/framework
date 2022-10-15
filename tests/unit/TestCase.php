@@ -4,6 +4,7 @@ namespace Koansu\Tests;
 
 use Mockery;
 use PHPUnit\Framework\TestCase as BaseTestCase;
+use Throwable;
 use Traversable;
 use Koansu\Core\Type;
 
@@ -31,17 +32,18 @@ class TestCase extends BaseTestCase
     /**
      * Assert that $collection has an object with
      *
-     * @param array|Traversable $collection
+     * @param iterable          $collection
      * @param array|callable    $criterion
      * @param string            $message (optional)
+     * @noinspection PhpMissingParamTypeInspection
      */
-    protected function assertHasObjectWith($collection, $criterion, string $message='')
+    protected function assertHasObjectWith(iterable $collection, $criterion, string $message='')
     {
 
         $filtered = $this->getObjectsWith($collection, $criterion);
         $criteria = $this->formatCriteria($criterion);
         $message = $message ?: "Failed asserting that the passed collection contained the passed $criteria";
-        $this->assertTrue(count($filtered) > 0, $message);
+        $this->assertNotEmpty($filtered, $message);
     }
 
     /**
@@ -83,6 +85,20 @@ class TestCase extends BaseTestCase
                 $this->fail($message ? $message : "Actual object property '$key' differs from expected");
             }
         }
+    }
+
+    /**
+     * Check if an exception message contains $message.
+     * @param string $message
+     * @param Throwable $e
+     * @param string $failMessage
+     */
+    protected function assertExceptionSays(string $message, Throwable $e, string $failMessage='')
+    {
+        $errorMessage = $e->getMessage();
+        $failMessage = $failMessage ?: "Error message '$errorMessage' does not contain '$message'";
+        /** @noinspection PhpStrFunctionsInspection */
+        $this->assertTrue(strpos($errorMessage, $message) !== false, $failMessage);
     }
 
     /**

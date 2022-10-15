@@ -5,8 +5,8 @@
 
 namespace Koansu\Core;
 
+use Countable;
 use TypeError;
-
 use UnexpectedValueException;
 
 use function gettype;
@@ -15,6 +15,7 @@ use function is_null;
 use function is_numeric;
 use function is_object;
 use function is_string;
+use function mb_strlen;
 use function method_exists;
 use function preg_match;
 use function preg_quote;
@@ -24,8 +25,9 @@ use function str_replace;
  * This is a string object. In the future it will work in oo string syntax. For
  * now, it acts as a generic string to pass it through.
  */
-class Str
+class Str implements Countable
 {
+
     /**
      * @var string
      */
@@ -41,6 +43,7 @@ class Str
      *
      * @param string|int|float|bool|object $raw
      * @param string $mimeType
+     * @noinspection PhpMissingParamTypeInspection
      */
     public function __construct($raw='', string $mimeType='text/plain')
     {
@@ -50,6 +53,7 @@ class Str
 
     /**
      * @return mixed
+     * @noinspection PhpMissingReturnTypeInspection
      */
     public function getRaw()
     {
@@ -59,6 +63,7 @@ class Str
     /**
      * @param mixed $raw
      * @return Str
+     * @noinspection PhpMissingParamTypeInspection
      */
     public function setRaw($raw): Str
     {
@@ -97,12 +102,36 @@ class Str
     /**
      * @return string
      */
-    public function __toString()
+    public function __toString() : string
     {
         if (!is_object($this->raw)) {
             return (string)$this->raw;
         }
         return $this->raw->__toString();
+    }
+
+    /**
+     * @return int
+     */
+    public function count() : int
+    {
+        return mb_strlen($this->__toString());
+    }
+
+    /**
+     * Create a new Str. This an enjoyable shortcut with some parallels
+     * to german gender language. Just call:
+     *
+     * @sample $str = Str::ing()
+     *
+     * @param string|int|float|bool|object $raw
+     * @param string $mimeType
+     * @return Str
+     * @noinspection PhpMissingParamTypeInspection
+     */
+    public static function ing($raw='', string $mimeType='text/plain') : self
+    {
+        return new static($raw, $mimeType);
     }
 
     /**
@@ -113,7 +142,7 @@ class Str
      */
     public function isLike(string $pattern, string $any='%', string $single='_') : bool
     {
-        return self::match($this->raw, $pattern, $any, $single);
+        return self::match($this->__toString(), $pattern, $any, $single);
     }
 
     /**
@@ -136,4 +165,22 @@ class Str
         return preg_match("/^$regex$/i", $haystack);
     }
 
+    /**
+     * Static version of contains.
+     *
+     * @param string $haystack
+     * @param string[]|string $needles
+     * @return bool
+     * @noinspection PhpMissingParamTypeInspection
+     */
+    public static function stringContains(string $haystack, $needles) : bool
+    {
+        foreach ((array)$needles as $needle) {
+            /** @noinspection PhpStrFunctionsInspection */
+            if (strpos($haystack, $needle) !== false) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
