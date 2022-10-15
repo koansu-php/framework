@@ -357,10 +357,11 @@ class Stream implements Connection, StreamInterface, Iterator
         if($this->hasValidResource()) {
             return stream_is_local($this->resource);
         }
-        if ($url = $this->url()) {
-            return stream_is_local("$url");
+        $url = $this->url();
+        if ($url->scheme == 'data') {
+            return true;
         }
-        return false;
+        return stream_is_local("$url");
     }
 
     /**

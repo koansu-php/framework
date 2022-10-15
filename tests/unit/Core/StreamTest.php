@@ -9,6 +9,7 @@ use Koansu\Core\Exceptions\ImplementationException;
 use Koansu\Core\Exceptions\IOException;
 use Koansu\Core\Exceptions\NotReadableException;
 use Koansu\Core\Exceptions\NotWritableException;
+use Koansu\Core\Str;
 use Koansu\Core\Stream;
 use Koansu\Core\Url;
 use Koansu\Tests\FilesystemMethods;
@@ -19,6 +20,7 @@ use Psr\Http\Message\StreamInterface;
 use function file_get_contents;
 use function filesize;
 use function ftell;
+use function strlen;
 use function substr;
 
 use const SEEK_END;
@@ -687,6 +689,113 @@ class StreamTest extends TestCase
         $stream->url = new Url();
         $this->assertTrue($stream->isLocal());
 
+    }
+
+    /**
+     * @test
+     */
+    public function reads_string_in_chunks()
+    {
+        $file = static::dataFile('ascii-data-eol-l.txt');
+
+        $content = file_get_contents($file);
+
+        $stream = $this->newStream(new Str($content));
+        $stream->setChunkSize(1024);
+
+        $chunks = [];
+
+        $readContent = '';
+
+        foreach ($stream as $i=>$chunk) {
+            $chunks[$i] = $chunk;
+            $readContent .= $chunk;
+        }
+
+        $this->assertEquals($content, $readContent);
+        $this->assertGreaterThanOrEqual(6, $chunks);
+        $this->assertFalse($stream->valid());
+        $this->assertEquals(-1, $stream->key());
+
+        // A second time to test reading without re-opening
+        $chunks2 = [];
+        $readContent2 = '';
+
+        foreach ($stream as $i=>$chunk) {
+            $chunks2[$i] = $chunk;
+            $readContent2 .= $chunk;
+        }
+
+        $this->assertEquals($content, $readContent2);
+        $this->assertGreaterThanOrEqual(6, $chunks2);
+        $this->assertFalse($stream->valid());
+        $this->assertEquals(-1, $stream->key());
+
+    }
+
+    /**
+     * @test
+     */
+    public function read_string_chunk()
+    {
+        $fileContent = file_get_contents(static::dataFile('ascii-data-eol-l.txt'));
+
+        $stream = $this->newStream(new Str($fileContent));
+        $content = "$stream";
+
+        $this->assertEquals(substr($content, 0, 1024), $stream->read(1024));
+
+    }
+
+    /**
+     * @test
+     */
+    public function reads_in_toString()
+    {
+        $fileContent = file_get_contents(static::dataFile('ascii-data-eol-l.txt'));
+
+        $stream = $this->newStream(new Str($fileContent));
+
+        $this->assertEquals($fileContent, "$stream");
+
+    }
+
+    /**
+     * @test
+     */
+    public function reads_empty_string()
+    {
+        $stream = $this->newStream(new Str(''));
+        $stream->setChunkSize(1024);
+
+        $i=0;
+        foreach ($stream as $chunk) {
+            $i++;
+        }
+
+        $this->assertEquals(1, $i);
+        $this->assertSame('', $chunk);
+
+    }
+
+    /**
+     * @test
+     */
+    public function size_returns_strlen()
+    {
+        $fileContent = static::dataFileContent('ascii-data-eol-l.txt');
+
+        $stream = $this->newStream(new Str($fileContent));
+        $this->assertEquals(strlen($fileContent), $stream->getSize());
+
+    }
+
+    /**
+     * @test
+     */
+    public function isLocal_returns_correct_value()
+    {
+        $this->assertTrue($this->newStream(new Str())->isLocal());
     }
 
     /**
