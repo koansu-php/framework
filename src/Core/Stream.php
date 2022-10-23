@@ -7,6 +7,7 @@ namespace Koansu\Core;
 
 use Iterator;
 use Koansu\Core\Contracts\Connection;
+use Koansu\Core\Exceptions\FailedToAcquireLockException;
 use Koansu\Core\Exceptions\ImplementationException;
 use Koansu\Core\Exceptions\IOException;
 use Koansu\Core\Exceptions\NotReadableException;
@@ -343,6 +344,24 @@ class Stream implements Connection, StreamInterface, Iterator
         }
 
         return $this->applyLock($handle);
+    }
+
+    /**
+     * This is just for fluid syntax in filesystem:
+     *
+     * foreach($fs->open($path, 'r')->locked() as $chunk)
+     *
+     * @param bool|int $mode
+     *
+     * @return Stream
+     * @noinspection PhpMissingParamTypeInspection
+     */
+    public function locked($mode = true) : Stream
+    {
+        if (!$this->lock($mode)) {
+            throw new FailedToAcquireLockException();
+        }
+        return $this;
     }
 
     /**

@@ -14,16 +14,12 @@ use Throwable;
 use function array_filter;
 use function array_map;
 use function copy;
-use function fclose;
-use function feof;
 use function file_exists;
 use function filemtime;
 use function filesize;
 use function filetype;
 use function fnmatch;
-use function fread;
 use function func_get_args;
-use function get_resource_type;
 use function glob;
 use function in_array;
 use function is_array;
@@ -52,11 +48,6 @@ class LocalFilesystem implements Filesystem
 {
 
     /**
-     * @var string
-     */
-    public static $directoryMimetype = 'inode/directory';
-
-    /**
      * {@inheritdoc}
      *
      * @param string $path
@@ -81,7 +72,6 @@ class LocalFilesystem implements Filesystem
         return new Url("file://$path");
     }
 
-
     /**
      * Open a stream to a url.
      *
@@ -92,9 +82,11 @@ class LocalFilesystem implements Filesystem
      */
     public function open($uri, string $mode='r+') : Stream
     {
+        if ($uri instanceof Url || is_resource($uri)) {
+            return new Stream($uri, $mode);
+        }
         return new Stream(new Url($uri), $mode);
     }
-
 
     /**
      * {@inheritdoc}
@@ -102,7 +94,9 @@ class LocalFilesystem implements Filesystem
      * @param string|array $path
      *
      * @return bool
-     **/
+     *
+     * @noinspection PhpUnusedLocalVariableInspection
+     */
     public function delete($path) : bool
     {
         $paths = is_array($path) ? $path : func_get_args();
@@ -388,7 +382,7 @@ class LocalFilesystem implements Filesystem
             return false;
         }
 
-        $all = $this->listDirectory($path, true, true);
+        $all = $this->listDirectory($path, true);
 
         // Sort by path length to resolve hierarchy conflicts
         usort($all, function ($a, $b) {
@@ -444,55 +438,6 @@ class LocalFilesystem implements Filesystem
         sort($results);
 
         return $results;
-    }
-
-    /**
-     * Find out if the passed resource is a stream context resource.
-     *
-     * @param mixed $resource
-     *
-     * @return bool
-     * @noinspection PhpMissingParamTypeInspection
-     */
-    protected function isStreamContext($resource) : bool
-    {
-        return is_resource($resource) && get_resource_type($resource) == 'stream-context';
-    }
-
-    /**
-     * Find out if the passed resource is a stream resource.
-     *
-     * @param mixed $resource
-     *
-     * @return bool
-     * @noinspection PhpMissingParamTypeInspection
-     */
-    protected function isStream($resource) : bool
-    {
-        return is_resource($resource) && get_resource_type($resource) == 'stream';
-    }
-
-    /**
-     * Read from a resource/handle.
-     *
-     * @param resource $handle
-     * @param bool $closeAfter (default:true)
-     *
-     * @return string
-     */
-    protected function getFromResource($handle, bool $closeAfter=true) : string
-    {
-        $contents = '';
-
-        while (!feof($handle)) {
-            $contents .= fread($handle, 8192);
-        }
-
-        if ($closeAfter) {
-            fclose($handle);
-        }
-
-        return $contents;
     }
 
     //<editor-fold desc="FilesystemMethodsTrait">

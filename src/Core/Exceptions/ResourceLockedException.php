@@ -6,10 +6,10 @@
 namespace Koansu\Core\Exceptions;
 
 /**
- * Throw a ResourceNotFoundException if a resource like a database entry
- * or a file or a session wasn't found.
+ * Throw a ResourceLockedException if access to a resource failed because of
+ * a lock.
  **/
-class ResourceLockedException extends IOException
+class ResourceLockedException extends ConcurrencyException
 {
     //
 }

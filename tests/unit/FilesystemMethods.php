@@ -168,7 +168,7 @@ trait FilesystemMethods
             $path = "$tempDir/$name";
 
             if (!is_array($node)) {
-                $fs->write($path, '');
+                $fs->open($path, 'w')->write('');
                 $pathStructure[] = $path;
                 continue;
             }
