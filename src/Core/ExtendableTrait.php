@@ -35,7 +35,7 @@ trait ExtendableTrait
      *
      * @return void
      **/
-    public function extend(string $name, callable $callable)
+    public function extend(string $name, callable $callable) : void
     {
         $this->_extensions[$name] = $callable;
         $this->_closestRegistered = [];
@@ -219,4 +219,5 @@ trait ExtendableTrait
     {
         return fnmatch($pattern, $string, FNM_NOESCAPE);
     }
+
 }

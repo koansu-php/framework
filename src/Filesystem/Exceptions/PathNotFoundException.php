@@ -3,7 +3,7 @@
  *  * Created by mtils on 11.10.2022 at 21:09.
  **/
 
-namespace Koansu\Filesystem\Exception;
+namespace Koansu\Filesystem\Exceptions;
 
 use RuntimeException;
 

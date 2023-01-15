@@ -23,7 +23,7 @@ interface Extendable
      *
      * @return void
      **/
-    public function extend(string $name, callable $extension);
+    public function extend(string $name, callable $extension) : void;
 
     /**
      * Return the extension stored under $name.

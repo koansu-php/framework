@@ -9,6 +9,7 @@ use Countable;
 use TypeError;
 use UnexpectedValueException;
 
+use function function_exists;
 use function gettype;
 use function is_bool;
 use function is_null;
@@ -16,14 +17,19 @@ use function is_numeric;
 use function is_object;
 use function is_string;
 use function mb_strlen;
+use function mb_strpos;
 use function method_exists;
 use function preg_match;
 use function preg_quote;
 use function str_replace;
+use function strlen;
+use function substr;
 
 /**
  * This is a string object. In the future it will work in oo string syntax. For
  * now, it acts as a generic string to pass it through.
+ * Pass through means if you normally escape tags or something similar you would
+ * not if a Str object was passed.
  */
 class Str implements Countable
 {
@@ -182,5 +188,28 @@ class Str implements Countable
             }
         }
         return false;
+    }
+
+    /**
+     * @param string $string
+     * @param string $start
+     * @return bool
+     */
+    public static function stringStartsWith(string $string, string $start) : bool
+    {
+        if (function_exists('mb_strpos')) {
+            return mb_strpos($string, $start) === 0;
+        }
+        /** @noinspection PhpStrFunctionsInspection */
+        return strpos($string, $start) === 0;
+    }
+
+    public static function stringEndsWith(string $string, string $end) : bool
+    {
+        if (function_exists('mb_strlen')) {
+            return mb_substr($string, -mb_strlen($end)) === $end;
+        }
+        /** @noinspection PhpStrFunctionsInspection */
+        return substr($string, -strlen($end)) === $end;
     }
 }

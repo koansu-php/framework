@@ -5,6 +5,8 @@
 
 namespace Koansu\Core;
 
+use Koansu\Routing\Contracts\Input;
+
 use function array_key_exists;
 use function func_get_args;
 use function is_array;
@@ -138,6 +140,20 @@ class ImmutableMessage extends Message
     }
 
     /**
+     * Try to get the last created input (by middleware)
+     *
+     * @param Input $input
+     * @return Input
+     */
+    public static function lastByNext(Input $input) : Input
+    {
+        if ($input instanceof ImmutableMessage && $input->next instanceof Input) {
+            return self::lastByNext($input->next);
+        }
+        return $input;
+    }
+
+    /**
      * @return $this
      * @noinspection PhpMissingReturnTypeInspection
      */
@@ -154,5 +170,16 @@ class ImmutableMessage extends Message
             $copy->$property = $value;
         }
         return $copy;
+    }
+
+    protected function isAssociative($data) : bool
+    {
+        if (!is_array($data)) {
+            return false;
+        }
+        foreach ($data as $key=>$value) {
+            return $key !== 0;
+        }
+        return true;
     }
 }

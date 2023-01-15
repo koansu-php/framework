@@ -164,29 +164,32 @@ abstract class Message implements ArrayAccess, IteratorAggregate, Countable, Arr
     /**
      * Get a value from (parsed) attributes.
      *
-     * @param string $id
+     * @param string $key
      * @param mixed $default
      * @return mixed|null
+     * @noinspection PhpMissingParamTypeInspection
+     * @noinspection PhpMissingReturnTypeInspection
      */
-    public function get(string $id, $default = null)
+    public function get(string $key, $default = null)
     {
-        if (array_key_exists($id, $this->custom)) {
-            return $this->custom[$id];
+        if (array_key_exists($key, $this->custom)) {
+            return $this->custom[$key];
         }
         return $default;
     }
 
     /**
-     * @param string $id
+     * @param string $key
      * @return mixed|null
      *
      * @throws ItemNotFoundException
+     * @noinspection PhpMissingReturnTypeInspection
      */
-    public function getOrFail(string $id)
+    public function getOrFail(string $key)
     {
-        $value = $this->get($id, new None());
+        $value = $this->get($key, new None());
         if ($value instanceof None) {
-            throw new KeyNotFoundException("Attribute $id no found");
+            throw new KeyNotFoundException("Attribute $key no found");
         }
         return $value;
     }

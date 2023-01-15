@@ -475,7 +475,7 @@ class Container implements ContainerContract
      *
      * @return void
      */
-    protected function storeListener($event, callable $listener, string $position)
+    protected function storeListener($event, callable $listener, string $position) : void
     {
         if (!is_array($event)) {
             $abstract = is_object($event) ? get_class($event) : $event;

@@ -7,6 +7,7 @@ namespace Koansu\Tests;
 
 use function file_get_contents;
 use function realpath;
+use function rtrim;
 
 trait TestData
 {
@@ -43,5 +44,16 @@ trait TestData
     protected static function includeDataFile(string $file) : array
     {
         return include(static::dataFile($file));
+    }
+
+    /**
+     * @notest
+     *
+     * @param string $dir
+     * @return string
+     */
+    protected static function dirOfTests(string $dir='') : string
+    {
+        return rtrim(realpath(__DIR__."/../../tests/" . $dir),'/');
     }
 }

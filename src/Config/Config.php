@@ -7,10 +7,21 @@ namespace Koansu\Config;
 
 use ArrayAccess;
 use ArrayIterator;
+use InvalidArgumentException;
 use IteratorAggregate;
+use Koansu\Config\Processors\ConfigVariablesParser;
+use Koansu\Config\Readers\IniFileReader;
 use OverflowException;
 use Traversable;
 use UnderflowException;
+
+use function file_exists;
+use function file_get_contents;
+use function is_string;
+use function json_decode;
+use function pathinfo;
+
+use const PATHINFO_EXTENSION;
 
 /**
  * Class Config
@@ -165,20 +176,6 @@ class Config implements ArrayAccess, IteratorAggregate
     }
 
     /**
-     * Compile the config if no compiled config was compiled already.
-     */
-    protected function compileIfNeeded()
-    {
-        if ($this->compiled !== null) {
-            return;
-        }
-        if (!$this->sources) {
-            throw new UnderflowException('No sources were added to the config');
-        }
-        $this->compiled = $this->compile($this->sources, $this->postProcessors);
-    }
-
-    /**
      * Merge all sources and post process the result.
      *
      * @param array      $sources
@@ -206,6 +203,20 @@ class Config implements ArrayAccess, IteratorAggregate
 
         return $processed;
 
+    }
+
+    /**
+     * Compile the config if no compiled config was compiled already.
+     */
+    protected function compileIfNeeded()
+    {
+        if ($this->compiled !== null) {
+            return;
+        }
+        if (!$this->sources) {
+            throw new UnderflowException('No sources were added to the config');
+        }
+        $this->compiled = $this->compile($this->sources, $this->postProcessors);
     }
 
     /**

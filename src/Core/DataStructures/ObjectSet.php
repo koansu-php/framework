@@ -53,7 +53,7 @@ class ObjectSet implements IteratorAggregate, Countable
      * @param object $object
      * @return void
      */
-    public function add(object $object)
+    public function add(object $object) : void
     {
         $key = $this->objectKey($object);
         if (isset($this->objects[$key])) {
@@ -71,7 +71,7 @@ class ObjectSet implements IteratorAggregate, Countable
      * @param object $object
      * @return void
      */
-    public function remove(object $object)
+    public function remove(object $object) : void
     {
         $key = $this->objectKey($object);
         if (!isset($this->objects[$key])) {
@@ -101,7 +101,7 @@ class ObjectSet implements IteratorAggregate, Countable
      *
      * @return void
      */
-    public function clear()
+    public function clear() : void
     {
         $this->objects = [];
         $this->objectKeys = [];

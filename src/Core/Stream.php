@@ -19,6 +19,7 @@ use TypeError;
 use function base64_encode;
 use function fclose;
 use function feof;
+use function fgets;
 use function flock;
 use function fopen;
 use function fread;
@@ -30,6 +31,7 @@ use function get_resource_type;
 use function is_int;
 use function is_resource;
 use function rewind;
+use function rtrim;
 use function str_replace;
 use function stream_copy_to_stream;
 use function stream_get_meta_data;
@@ -173,6 +175,16 @@ class Stream implements Connection, StreamInterface, Iterator
     protected $target;
 
     /**
+     * @var string
+     */
+    protected $strBuffer = '';
+
+    /**
+     * @var bool
+     */
+    protected $isStringBuffer = false;
+
+    /**
      * Create a new stream. If you want to create a stream to access a
      * string wrap it by a Str() object. Strings are considered as URLs
      * and get automatically converted to them
@@ -196,6 +208,8 @@ class Stream implements Connection, StreamInterface, Iterator
         }
         if ($target instanceof Str) {
             $this->url = new Url('data://text/plain;base64');
+            $this->strBuffer = $target->__toString();
+            $this->isStringBuffer = true;
             return;
         }
         if (Type::isStringLike($target)) {
@@ -451,9 +465,12 @@ class Stream implements Connection, StreamInterface, Iterator
     }
 
     /**
-     * @return string
-     **/
-    public function current() : string
+     * @return mixed
+     *
+     * @noinspection PhpMissingReturnTypeInspection
+     */
+    #[\ReturnTypeWillChange]
+    public function current()
     {
         if ($this->position === 0 && $this->currentValue instanceof None) {
             $this->currentValue = $this->readNext($this->resource(), $this->chunkSize);
@@ -495,6 +512,9 @@ class Stream implements Connection, StreamInterface, Iterator
      */
     public function isSeekable() : bool
     {
+        if ($this->isStringBuffer) {
+            return false;
+        }
         return (bool)$this->meta(static::META_SEEKABLE);
     }
 
@@ -533,6 +553,12 @@ class Stream implements Connection, StreamInterface, Iterator
 
         if (!$this->isWritable()) {
             throw new NotWritableException('This stream is not writable');
+        }
+
+        if ($this->isStringBuffer) {
+            $append = (string)$string;
+            $this->strBuffer .= $append;
+            return strlen($append);
         }
 
         if (!$isStream && Type::isStringable($string)) {
@@ -674,8 +700,8 @@ class Stream implements Connection, StreamInterface, Iterator
      **/
     public function __toString() : string
     {
-        if ($this->target instanceof Str && !$this->target instanceof Url) {
-            return $this->target->__toString();
+        if ($this->isStringBuffer) {
+            return $this->strBuffer ?: $this->target->__toString();
         }
         $this->failOnWriteOnly();
 
@@ -800,9 +826,11 @@ class Stream implements Connection, StreamInterface, Iterator
      * @param resource $handle
      * @param int      $chunkSize
      *
-     * @return string|null
-     **/
-    protected function readNext($handle, int $chunkSize) : ?string
+     * @return mixed
+     *
+     * @noinspection PhpMissingReturnTypeInspection
+     */
+    protected function readNext($handle, int $chunkSize)
     {
 
         if (feof($handle)) {
@@ -822,6 +850,21 @@ class Stream implements Connection, StreamInterface, Iterator
     protected function readFromHandle($handle, int $chunkSize)
     {
         return fread($handle, $chunkSize);
+    }
+
+    /**
+     * Clean the line (remove line breaks).
+     *
+     * @param resource $handle
+     * @param int      $chunkSize
+     *
+     * @return string
+     **/
+    protected function readLine($handle, int $chunkSize) : string
+    {
+        $line = $chunkSize ? fgets($handle, $chunkSize) : fgets($handle);
+
+        return rtrim($line, "\n\r");
     }
 
     /**
