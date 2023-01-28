@@ -7,6 +7,6 @@ namespace Koansu\Schema\Contracts;
 
 interface MigrationRunner
 {
-    public function upgrade(string $file,   bool $simulate=false);
-    public function downgrade(string $file, bool $simulate=false);
+    public function upgrade(string $file,   bool $simulate=false) : void;
+    public function downgrade(string $file, bool $simulate=false) : void;
 }

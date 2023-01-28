@@ -18,7 +18,7 @@ use Koansu\Routing\RouteScope;
 interface  UrlGenerator
 {
     /**
-     * The to() method accepts all kind of parameters. Passing an Entity
+     * The to() method accepts all kind of parameters. Passing an Core\Entity
      * results in self::entity($path, 'show')
      * Passing a string will be used as path.
      *

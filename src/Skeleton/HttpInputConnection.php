@@ -13,6 +13,7 @@ use Koansu\Skeleton\Contracts\InputConnection;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+use function function_exists;
 use function getallheaders;
 
 class HttpInputConnection extends AbstractConnection implements InputConnection, ServerRequestFactoryInterface
@@ -153,6 +154,9 @@ class HttpInputConnection extends AbstractConnection implements InputConnection,
      */
     protected function guessHeaders() : array
     {
+        if (!function_exists('getallheaders')) {
+            return [];
+        }
         return getallheaders() ?: [];
     }
 }

@@ -178,10 +178,10 @@ trait ExtendableTrait
     /**
      * Find the extension that was registered for a parent class of $class.
      *
-     * So in $host->extend(DataObject::class, $handler) and a class hierarchy like this:
-     * User -> DataObject -> Entity
-     * A handler extended vor DataObject would be returned in favour to one
-     * extended vor Entity. A handler extended for User would be prio 1.
+     * So in $host->extend(Core\DataObject::class, $handler) and a class hierarchy like this:
+     * User -> Core\DataObject -> Core\Entity
+     * A handler extended vor Core\DataObject would be returned in favour to one
+     * extended vor Core\Entity. A handler extended for User would be prio 1.
      *
      * @param string $class
      * @param bool $fail

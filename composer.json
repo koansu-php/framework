@@ -26,7 +26,8 @@
     "ext-json": "*",
     "ext-ctype": "*",
     "ext-iconv": "*",
-    "ext-mbstring": "*"
+    "ext-mbstring": "*",
+    "illuminate/database": ">5.0"
   },
   "replace": {
     "koansu/core": "self.version",
@@ -45,7 +46,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Koansu\\Tests\\": "tests/unit"
+      "Koansu\\Tests\\": "tests/src"
     }
   }
 }

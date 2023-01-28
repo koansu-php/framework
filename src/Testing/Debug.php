@@ -9,6 +9,8 @@ use JetBrains\PhpStorm\NoReturn;
 
 use function print_r;
 
+use const PHP_EOL;
+
 class Debug
 {
     #[NoReturn]
@@ -20,8 +22,11 @@ class Debug
 
     public static function dump(...$args) : void
     {
+        $nl = '';
         foreach ($args as $arg) {
+            echo $nl;
             print_r($arg);
+            $nl = PHP_EOL;
         }
     }
 }

@@ -7,5 +7,6 @@ namespace Koansu\Schema\Exceptions;
 
 class MigratorInstallationException extends MigratorException
 {
-    //
+    const NOT_INSTALLED   = 4040;
+    const NOT_INSTALLABLE = 5000;
 }

@@ -12,9 +12,19 @@ use Koansu\Core\Url;
 use Koansu\Database\Contracts\DatabaseConnection;
 use TypeError;
 
+use function func_get_args;
+use function var_dump;
+
 class DatabaseConnectionFactory implements Extendable
 {
     use ExtendableTrait;
+
+    /**
+     * This is a helper constant. Everytime you pass this constant to the
+     * connection method you will get the "default" connection. Even if the
+     * defaultConnectionName is set to something different.
+     */
+    const DEFAULT_CONNECTION = 'default';
 
     protected $connections = [];
 
@@ -30,6 +40,9 @@ class DatabaseConnectionFactory implements Extendable
 
     public function connection($nameOrUrl=null) : DatabaseConnection
     {
+        if (!$nameOrUrl || $nameOrUrl == self::DEFAULT_CONNECTION) {
+            $nameOrUrl = $this->getDefaultConnectionName();
+        }
         $nameOrUrl = $nameOrUrl ?: $this->getDefaultConnectionName();
         $key = (string)$nameOrUrl;
 
@@ -41,7 +54,7 @@ class DatabaseConnectionFactory implements Extendable
 
         $connection = $this->callUntilNotNull(
             $this->allExtensions(),
-            [$url, $this->configurations[$key] ?? [], $this],
+            [$this->configurations[$key] ?? $url, $this],
             true
         );
 
@@ -50,7 +63,7 @@ class DatabaseConnectionFactory implements Extendable
         }
 
         $this->connections[$key] = $connection;
-        $this->connections[(string)$connection->url()];
+        $this->connections[(string)$connection->url()] = $connection;
 
         return $connection;
     }

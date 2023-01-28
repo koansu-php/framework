@@ -473,6 +473,27 @@ class Application extends Container implements ContainerContract, HasMethodHooks
     //<editor-fold desc="Listen / Handle Input">
 
     /**
+     * Boot the application (once). It returns false if it was already booted,
+     * otherwise true.
+     *
+     * @return bool
+     */
+    public function boot() : bool
+    {
+        if ($this->hasCompleted(self::STEP_BOOT)) {
+            return false;
+        }
+
+        static::$staticInstance = $this;
+        $this->runStep(self::STEP_INIT);
+        $this->runStep(self::STEP_CONFIGURE);
+        $this->runStep(self::STEP_BIND);
+        $this->runStep(self::STEP_BOOT);
+
+        return true;
+    }
+
+    /**
      * This is a shortcut to read from the input connection
      *
      * @param callable $handler
@@ -483,13 +504,8 @@ class Application extends Container implements ContainerContract, HasMethodHooks
      */
     public function listen(callable $handler) : void
     {
-        if (!$this->hasCompleted(self::STEP_BOOT)) {
-            static::$staticInstance = $this;
-            $this->runStep(self::STEP_INIT);
-            $this->runStep(self::STEP_CONFIGURE);
-            $this->runStep(self::STEP_BIND);
-            $this->runStep(self::STEP_BOOT);
-        }
+
+        $this->boot();
 
         $this->runStep(self::STEP_LISTEN, [$this], [ListenerContainer::BEFORE]);
 

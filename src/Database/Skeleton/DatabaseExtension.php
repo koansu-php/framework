@@ -30,9 +30,11 @@ class DatabaseExtension extends AppExtension
         if (!$config = $this->app->config('database')) {
             return $factory;
         }
+
         $factory->configure($config['connections'], $config['connection']);
 
 
         return $factory;
     }
+
 }
