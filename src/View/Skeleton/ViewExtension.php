@@ -16,6 +16,8 @@ use Koansu\View\RendererMiddleware;
 
 use Koansu\View\TemplateFinder;
 
+use function func_num_args;
+use function gettype;
 use function ltrim;
 
 class ViewExtension extends AppExtension
@@ -48,7 +50,7 @@ class ViewExtension extends AppExtension
         }
 
         foreach ($viewConfig as $name=>$config) {
-            $factory->extend($name, function (Input $input) use ($config) {
+            $factory->extend($name, function (Input $input, $response) use ($config) {
                 if ($input->getClientType() != $config['client-type']) {
                     return null;
                 }
@@ -78,6 +80,7 @@ class ViewExtension extends AppExtension
         /** @var PhpRenderer $renderer */
         $renderer = $this->app->create(PhpRenderer::class, [$finder]);
         $renderer->setContainer($this->app);
+        $renderer->share('app', $this->app);
         return $renderer;
     }
 

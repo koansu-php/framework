@@ -15,7 +15,7 @@ use Koansu\Skeleton\AppExtension;
 use Koansu\Skeleton\Application;
 use Koansu\Testing\Benchmark;
 use Koansu\Testing\BenchmarkRenderer\JSConsoleRenderer;
-use Koansu\Testing\Type;
+use Koansu\Core\Type;
 
 use function is_object;
 use function method_exists;

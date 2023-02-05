@@ -113,19 +113,19 @@ class RoutingExtension extends AppExtension
 
             $routes->command(
                 'commands',
-                ConsoleCommandsController::class.'->index',
+                [ConsoleCommandsController::class, 'index'],
                 'List all of your console commands.'
             )->argument('?pattern', 'List only commands matching this pattern');
 
             $routes->command(
                 'help',
-                ConsoleCommandsController::class.'->show',
+                [ConsoleCommandsController::class, 'show'],
                 'Show help for one console command.'
             )->argument('command_name', 'The name of the command you need help for.');
 
             $routes->command(
                 'routes',
-                RoutesController::class.'->index',
+                [RoutesController::class, 'index'],
                 'List all your routes (and commands)'
             )->argument('?columns', 'What columns to show? v=Verb(Method), p=Pattern, n=Name, c=Clients, s=Scopes, m=Middleware')
                 ->option('pattern=*', 'Routes matches this pattern', 'p')

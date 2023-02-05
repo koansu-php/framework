@@ -23,6 +23,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use ReflectionException;
 
 use function is_callable;
+use function print_r;
 
 /**
  * Class RoutedInputHandler

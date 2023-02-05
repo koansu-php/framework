@@ -181,6 +181,7 @@ abstract class AppExtension
             $this->registerAliases();
             $this->bindBindings();
             $this->bindSingletons();
+            $this->registerMiddlewareMethod();
             $this->registerRouteMethod();
         });
     }

@@ -13,6 +13,7 @@ use UnexpectedValueException;
 
 use function array_key_exists;
 use function array_keys;
+use function explode;
 use function func_num_args;
 use function implode;
 use function in_array;
@@ -258,22 +259,38 @@ class RouteSearch implements Search
     }
 
     /**
-     * @param string          $pattern
+     * @param string|string[] $pattern
      * @param string|string[] $item
      *
      * @return bool
      * @noinspection PhpMissingParamTypeInspection
      */
-    protected function match(string $pattern, $item) : bool
+    protected function match($pattern, $item) : bool
     {
+        if (is_array($pattern)) {
+            return $this->matchAny($pattern, $item);
+        }
         if ($pattern == '*') {
             return true;
+        }
+        if (strpos($pattern, ',')) {
+            return $this->match(explode(',', $pattern), $item);
         }
         if (!is_array($item)) {
             return strpos($item, $pattern) !== false;
         }
         foreach ($item as $string) {
             if ($this->match($pattern, $string)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected function matchAny(array $patterns, $item) : bool
+    {
+        foreach ($patterns as $pattern) {
+            if ($this->match($pattern, $item)) {
                 return true;
             }
         }

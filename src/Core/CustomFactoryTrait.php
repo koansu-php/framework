@@ -10,7 +10,9 @@ use Koansu\Core\Exceptions\SymbolNotFoundException;
 use ReflectionClass;
 use ReflectionException;
 
+use function array_unshift;
 use function call_user_func;
+use function func_get_args;
 
 /**
  * Using this trait makes your class implementing SupportsCustomFactory.
@@ -48,7 +50,7 @@ trait CustomFactoryTrait
     protected function createObject(string $abstract, array $parameters=[]) : object
     {
         if ($this->_customFactory) {
-            return call_user_func($this->_customFactory,  ...[$abstract, $parameters]);
+            return call_user_func($this->_customFactory, $abstract, $parameters);
         }
         try {
             return $this->createWithoutFactory($abstract, $parameters);
@@ -70,6 +72,6 @@ trait CustomFactoryTrait
      **/
     protected function createWithoutFactory(string $abstract, array $parameters=[]) : object
     {
-        return (new ReflectionClass($abstract))->newInstanceArgs($parameters);
+        return (new ReflectionClass($abstract))->newInstanceArgs(array_values($parameters));
     }
 }

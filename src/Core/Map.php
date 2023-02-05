@@ -9,9 +9,11 @@ use Closure;
 
 use function array_key_exists;
 use function array_pop;
+use function array_shift;
 use function call_user_func;
 use function explode;
 use function is_array;
+use function is_null;
 use function preg_quote;
 use function preg_split;
 use function strlen;
@@ -114,6 +116,36 @@ class Map
         }
 
         return $endsWithDelimiter ? self::withoutNested($nested) : $nested;
+    }
+
+    /**
+     * Set a (nested) key.
+     *
+     * @param array $array
+     * @param $key
+     * @param $value
+     * @return void
+     */
+    public static function set(array &$array, $key, $value) : void
+    {
+        if (is_null($key)) {
+            $array = $value;
+            return;
+        }
+
+        $segments = is_array($key) ? $key : explode('.', $key);
+
+        while (count($segments) > 1) {
+            $key = array_shift($segments);
+
+            if (! isset($array[$key]) || ! is_array($array[$key])) {
+                $array[$key] = [];
+            }
+
+            $array = &$array[$key];
+        }
+
+        $array[array_shift($segments)] = $value;
     }
 
     /**

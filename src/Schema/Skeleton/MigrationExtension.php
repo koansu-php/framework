@@ -13,6 +13,8 @@ use Koansu\Core\Exceptions\ImplementationException;
 use Koansu\Core\Url;
 use Koansu\Database\DatabaseConnectionFactory;
 use Koansu\Database\Illuminate\KoansuConnectionFactory;
+use Koansu\Routing\Contracts\RouteRegistry;
+use Koansu\Routing\RouteCollector;
 use Koansu\Schema\Contracts\MigrationRunner;
 use Koansu\Schema\Contracts\MigrationStepRepository;
 use Koansu\Schema\Illuminate\IlluminateMigrationRunner;
@@ -21,6 +23,9 @@ use Koansu\Schema\Migrator;
 use Koansu\Skeleton\AppExtension;
 use Koansu\Schema\Contracts\Migrator as MigratorContract;
 
+use Koansu\Testing\Debug;
+
+use function get_class;
 use function in_array;
 
 class MigrationExtension extends AppExtension
@@ -56,6 +61,23 @@ class MigrationExtension extends AppExtension
             return $migrator;
         });
 
+    }
+
+    protected function addRoutes(RouteRegistry $registry) : void
+    {
+        $registry->register(function (RouteCollector $collector) {
+
+            $collector->command('migrate', MigrationCommand::class.'->migrate', 'Run all pending migrations')
+                ->option('simulate', 'Just show the queries but do not change the database.', 't');
+
+            $collector->command('migrate:status', MigrationCommand::class.'->status', 'List all migration steps and their state');
+
+            $collector->command('migrate:install', MigrationCommand::class.'->install', 'Install the migration repository');
+
+            $collector->command('migrate:rollback', MigrationCommand::class.'->rollback', 'Rollback last migrations')
+                ->option('simulate', 'Just show the queries but do not change the database.', 't')
+                ->option('limit=0', 'Limit the number of rolled back migrations. By default all migrations of the last batch will be rolled back.', 'l');
+        });
     }
 
     protected function makeRepository(array $config) : MigrationStepRepository
@@ -133,7 +155,11 @@ class MigrationExtension extends AppExtension
         $source = new Url($config['source']);
 
         if (in_array(MigratorContract::PATHS, $options)) {
-            $handler->setOption(MigratorContract::PATHS, $config['paths']);
+            $realPaths = [];
+            foreach($config['paths'] as $path) {
+                $realPaths[] = $this->absolutePath($path);
+            }
+            $handler->setOption(MigratorContract::PATHS, $realPaths);
         }
         if (in_array(MigratorContract::REPOSITORY_URL, $options)) {
             $handler->setOption(MigratorContract::REPOSITORY_URL, $source);

@@ -12,6 +12,10 @@ use Koansu\Core\RenderData;
 use Koansu\Core\Response;
 use Koansu\Routing\Contracts\Input;
 
+use Koansu\Testing\Debug;
+
+use function xdebug_break;
+
 class RendererMiddleware implements Extendable
 {
     use ExtendableTrait;
