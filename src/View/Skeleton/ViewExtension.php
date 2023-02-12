@@ -55,7 +55,10 @@ class ViewExtension extends AppExtension
                     return null;
                 }
                 if ($config['backend'] == 'php') {
-                    return $this->createPhpRenderer($config)->share('input', $input);
+                    return $this->createPhpRenderer($config)->share([
+                        'input' => $input,
+                        'user'  => $input->getUser()
+                    ]);
                 }
                 return null;
             });

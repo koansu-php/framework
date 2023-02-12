@@ -5,19 +5,15 @@
 
 namespace Koansu\Routing;
 
-use Koansu\Core\None;
-use Koansu\Core\Url;
-use Koansu\Routing\Contracts\Input;
-use Koansu\Routing\Route;
-use Koansu\Routing\RouteScope;
-use Koansu\Core\Stream;
-use Koansu\Http\HttpRequest;
-use Koansu\Routing\Contracts\Session;
-
-use Koansu\Http\Psr\UploadedFile;
 use InvalidArgumentException;
+use Koansu\Core\None;
+use Koansu\Core\Stream;
+use Koansu\Core\Url;
+use Koansu\Http\HttpRequest;
+use Koansu\Http\Psr\UploadedFile;
+use Koansu\Routing\Contracts\Input;
+use Koansu\Routing\Contracts\Session;
 use Psr\Http\Message\ServerRequestInterface;
-
 use Psr\Http\Message\UploadedFileInterface;
 
 use function array_key_exists;
@@ -370,7 +366,7 @@ class HttpInput extends HttpRequest implements Input, ServerRequestInterface
             }
             $formatted[$key] = [];
             foreach($this->reformatFiles($value) as $file) {
-                $formatted[$key][] = $file;
+                $formatted[$key][] = $this->uploadedFile($file);
             }
         }
 

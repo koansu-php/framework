@@ -6,8 +6,12 @@
 namespace Koansu\Testing;
 
 use JetBrains\PhpStorm\NoReturn;
+use Koansu\Core\Str;
 
-use function print_r;
+use function ob_get_clean;
+use function str_replace;
+use function strip_tags;
+use function var_dump;
 
 use const PHP_EOL;
 
@@ -22,11 +26,26 @@ class Debug
 
     public static function dump(...$args) : void
     {
+        echo self::format(...$args);
+    }
+
+    public static function format(...$args) : string
+    {
         $nl = '';
+        ob_start();
         foreach ($args as $arg) {
             echo $nl;
-            print_r($arg);
+            var_dump(...$args);
             $nl = PHP_EOL;
         }
+        $varDumpLine = __LINE__ - 3;
+        $xdebugOut = __FILE__ . ":$varDumpLine:";
+
+        $string = trim((string)ob_get_clean());
+        $plain = trim(strip_tags($string));
+        if (!Str::stringContains(trim($plain), __FILE__)) {
+            return $string;
+        }
+        return str_replace($xdebugOut, '', $string);
     }
 }
