@@ -10,6 +10,7 @@ use Koansu\Core\ExtendableTrait;
 use Koansu\Skeleton\Contracts\InputConnection;
 use Koansu\Skeleton\Contracts\OutputConnection;
 use OutOfBoundsException;
+use Psr\Log\InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use TypeError;
 
@@ -31,6 +32,11 @@ class IO implements Extendable
     use ExtendableTrait;
 
     /**
+     * @var IO
+     */
+    protected static $staticInstance;
+
+    /**
      * @var ?InputConnection
      */
     protected $input;
@@ -44,6 +50,11 @@ class IO implements Extendable
      * @var ?LoggerInterface
      */
     protected $log;
+
+    public function __construct()
+    {
+        static::$staticInstance = $this;
+    }
 
     /**
      * Get the input connection to read from input.
@@ -95,7 +106,7 @@ class IO implements Extendable
         if ($logger && !$logger instanceof LoggerInterface) {
             throw new TypeError('The matching extension did not return an ' . LoggerInterface::class);
         }
-        $this->log = $logger ?: $this->createDefaultLogger();
+        $this->log = $logger ?: static::createDefaultLogger();
         return $this->log;
     }
 
@@ -126,6 +137,24 @@ class IO implements Extendable
         }
     }
 
+    /**
+     * Shortcut for logging a message.
+     *
+     * @see LoggerInterface::log()
+     *
+     * @param string $level
+     * @param string $message
+     * @param array $context
+     * @return void
+     *
+     * @throws InvalidArgumentException
+     */
+    public static function log(string $level, string $message, array $context=[]) : void
+    {
+        $logger = static::$staticInstance ? static::$staticInstance->logger() : static::createDefaultLogger();
+        $logger->log($level, $message, $context);
+    }
+
     protected function createDefaultInput() : InputConnection
     {
         if (php_sapi_name() == 'cli') {
@@ -142,7 +171,7 @@ class IO implements Extendable
         return new HttpOutputConnection();
     }
 
-    protected function createDefaultLogger() : LoggerInterface
+    protected static function createDefaultLogger() : LoggerInterface
     {
         return new StreamLogger();
     }
