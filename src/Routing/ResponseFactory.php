@@ -82,7 +82,7 @@ class ResponseFactory implements ResponseFactoryContract, UtilizesInput
     public function redirect($to, array $routeParams = []): Response
     {
         $to = $this->isRouteName($to) ? $this->urls->route($to) : $to;
-        return new HttpResponse([],['Location' => "$to"], 302);
+        return new HttpResponse($this->redirectHtml($to),['Location' => "$to"], 302);
     }
 
     public function setInput(Input $input)
@@ -103,5 +103,20 @@ class ResponseFactory implements ResponseFactoryContract, UtilizesInput
             return false;
         }
         return strpos($to, '/') === false;
+    }
+
+    /**
+     * @param string|Url $location
+     * @return string
+     * @noinspection PhpMissingParamTypeInspection
+     */
+    protected function redirectHtml($location) : string
+    {
+        return '<!DOCTYPE html>' .
+               '<html>' .
+                   '<head>' .
+                       "<meta http-equiv=\"Refresh\" content=\"0; url=$location\" />" .
+                   '</head>' .
+               '</html>';
     }
 }

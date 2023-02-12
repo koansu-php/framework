@@ -5,7 +5,7 @@
 
 namespace Koansu\Auth\Routing;
 
-use Koansu\Auth\Auth;
+use Koansu\Auth\Contracts\Auth;
 use Koansu\Auth\Exceptions\LoggedOutException;
 use Koansu\Routing\Contracts\Input;
 

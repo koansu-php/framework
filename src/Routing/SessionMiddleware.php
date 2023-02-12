@@ -6,11 +6,11 @@
 namespace Koansu\Routing;
 
 use Koansu\Core\Contracts\Extendable;
+use Koansu\Core\ExtendableTrait;
 use Koansu\Core\Response;
 use Koansu\Http\Cookie;
-use Koansu\Routing\Contracts\Input;
-use Koansu\Core\ExtendableTrait;
 use Koansu\Http\HttpResponse;
+use Koansu\Routing\Contracts\Input;
 use Koansu\Routing\SessionHandler\ArraySessionHandler;
 use SessionHandler;
 use UnexpectedValueException;
@@ -87,13 +87,17 @@ class SessionMiddleware implements Extendable
      */
     protected function createCookie(array $config, string $sessionId, HttpInput $input) : Cookie
     {
+        $defaultSecure = null;
+        if($input->getUrl()->scheme && $input->getUrl()->scheme == 'http') {
+            $defaultSecure = false;
+        }
         return new Cookie(
             $config[self::COOKIE_NAME],
             $sessionId,
-            isset($config['lifetime']) ? ($config['lifetime'] =='session' ? 0 : (int)$config['lifetime']) : $this->lifeTime,
+            isset($config['lifetime']) ? ($config['lifetime'] =='session' ? null : (int)$config['lifetime']) : $this->lifeTime,
             $config['path'] ?? null,
             $config['domain'] ?? null,
-            $config['secure'] ?? null,
+            $config['secure'] ?? $defaultSecure,
             $config['httponly'] ?? null,
             $config['samesite'] ?? null
         );

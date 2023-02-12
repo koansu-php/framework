@@ -5,10 +5,10 @@
 
 namespace Koansu\Routing\SessionHandler;
 
+use DateTime;
 use Koansu\Core\Exceptions\IOException;
 use Koansu\Filesystem\Contracts\Filesystem;
 use Koansu\Filesystem\LocalFilesystem;
-use DateTime;
 use SessionHandlerInterface;
 
 class FileSessionHandler implements SessionHandlerInterface
@@ -56,8 +56,13 @@ class FileSessionHandler implements SessionHandlerInterface
     public function read($id) : string
     {
         $this->init();
+        $fileName = $this->fileName($id);
+        // Got warning in log even with @fopen under PHP 8.1
+        if (!$this->fs->exists($fileName)) {
+            return '';
+        }
         try {
-            return (string)$this->fs->open($this->fileName($id));
+            return (string)$this->fs->open($fileName);
         } catch (IOException $e) {
             return '';
         }
@@ -88,7 +93,12 @@ class FileSessionHandler implements SessionHandlerInterface
      */
     public function destroy($id) : bool
     {
-        return $this->fs->delete($this->fileName($id));
+        $fileName = $this->fileName($id);
+        // Got warning in log even with @fopen under PHP 8.1
+        if (!$this->fs->exists($fileName)) {
+            return false;
+        }
+        return $this->fs->delete($fileName);
     }
 
     /**

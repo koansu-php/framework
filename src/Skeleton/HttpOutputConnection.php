@@ -5,13 +5,13 @@
 
 namespace Koansu\Skeleton;
 
-use Koansu\Core\Url;
-use Koansu\Http\Cookie;
-use Koansu\Skeleton\Contracts\OutputConnection;
 use Koansu\Core\AbstractConnection;
 use Koansu\Core\Response;
-use Koansu\Http\HttpResponse;
+use Koansu\Core\Url;
+use Koansu\Http\Cookie;
 use Koansu\Http\CookieSerializer;
+use Koansu\Http\HttpResponse;
+use Koansu\Skeleton\Contracts\OutputConnection;
 use Psr\Http\Message\ResponseInterface;
 
 use function fwrite;

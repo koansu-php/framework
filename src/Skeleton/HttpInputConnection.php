@@ -118,11 +118,7 @@ class HttpInputConnection extends AbstractConnection implements InputConnection,
             'headers'               => $this->headers ?: $this->guessHeaders(),
             'determinedContentType' => 'text/html'
         ];
-        $attributes = [
-            'uri'                   => $uri ?: $this->createUrl($server),
-            'method'                => $method ?: $server['REQUEST_METHOD'],
-            'determinedContentType' => 'text/html'
-        ];
+
         return new HttpInput(
             $attributes,
             $this->headers ?: $this->guessHeaders(),

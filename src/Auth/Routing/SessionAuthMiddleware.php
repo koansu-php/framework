@@ -12,6 +12,8 @@ use Koansu\Routing\ArgvInput;
 use Koansu\Routing\HttpInput;
 use Throwable;
 
+use function print_r;
+
 class SessionAuthMiddleware
 {
     /**
@@ -19,7 +21,7 @@ class SessionAuthMiddleware
      */
     protected $auth;
 
-    protected $sessionKey = 'ems-auth-credentials';
+    protected $sessionKey = 'koansu-auth-credentials';
 
     public function __construct(Auth $auth)
     {

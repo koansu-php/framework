@@ -5,6 +5,7 @@
 
 namespace Koansu\Routing;
 
+use Koansu\Core\Contracts\Arrayable;
 use Koansu\Core\Contracts\Serializer as SerializerContract;
 use Koansu\Core\Contracts\Storage;
 use Koansu\Core\Serializer;
@@ -21,7 +22,7 @@ use function session_create_id;
 use function session_name;
 use function session_save_path;
 
-class Session implements SessionContract
+class Session implements SessionContract, Arrayable
 {
     /**
      * @var array|null
@@ -95,7 +96,7 @@ class Session implements SessionContract
     /**
      * @return array
      */
-    public function toArray() : array
+    public function __toArray() : array
     {
         $this->startIfNotStarted();
         return $this->data;

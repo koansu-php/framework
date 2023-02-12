@@ -70,7 +70,7 @@ class SessionTest extends TestCase
 
         $session = $this->session();
         $this->assertFalse($session->isStarted());
-        $this->assertSame([], $session->toArray());
+        $this->assertSame([], $session->__toArray());
         $this->assertTrue($session->isStarted());
     }
 
@@ -128,9 +128,9 @@ class SessionTest extends TestCase
         $session['a'] = 'b';
         $session['c'] = 'd';
         $session['e'] = 'f';
-        $this->assertEquals(['a'=>'b','c'=>'d', 'e'=>'f'], $session->toArray());
+        $this->assertEquals(['a'=>'b','c'=>'d', 'e'=>'f'], $session->__toArray());
         $session->clear(['a','e']);
-        $this->assertEquals(['c'=>'d'], $session->toArray());
+        $this->assertEquals(['c'=>'d'], $session->__toArray());
     }
 
     /**
@@ -142,9 +142,9 @@ class SessionTest extends TestCase
         $session['a'] = 'b';
         $session['c'] = 'd';
         $session['e'] = 'f';
-        $this->assertEquals(['a'=>'b','c'=>'d', 'e'=>'f'], $session->toArray());
+        $this->assertEquals(['a'=>'b','c'=>'d', 'e'=>'f'], $session->__toArray());
         $session->clear();
-        $this->assertSame([], $session->toArray());
+        $this->assertSame([], $session->__toArray());
     }
 
     /**
@@ -156,9 +156,9 @@ class SessionTest extends TestCase
         $session['a'] = 'b';
         $session['c'] = 'd';
         $session['e'] = 'f';
-        $this->assertEquals(['a'=>'b','c'=>'d', 'e'=>'f'], $session->toArray());
+        $this->assertEquals(['a'=>'b','c'=>'d', 'e'=>'f'], $session->__toArray());
         $session->clear([]);
-        $this->assertEquals(['a'=>'b','c'=>'d', 'e'=>'f'], $session->toArray());
+        $this->assertEquals(['a'=>'b','c'=>'d', 'e'=>'f'], $session->__toArray());
     }
 
     /**

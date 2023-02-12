@@ -8,21 +8,20 @@ namespace Koansu\Http;
 
 use DateTime;
 use Koansu\Core\Contracts\Arrayable;
-use Koansu\Core\Str;
-use TypeError;
-use Koansu\Core\Message;
 use Koansu\Core\Contracts\Serializer as SerializerContract;
-use Koansu\Core\Serializer;
-use Koansu\Core\Type;
-use Koansu\Http\Cookie;
 use Koansu\Core\Exceptions\ConfigurationException;
-use Koansu\Core\Stream;
+use Koansu\Core\Message;
 use Koansu\Core\Response;
+use Koansu\Core\Serializer;
+use Koansu\Core\Str;
+use Koansu\Core\Stream;
+use Koansu\Core\Type;
 use Koansu\Http\Psr\PsrMessageTrait;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use stdClass;
 use Traversable;
+use TypeError;
 use UnexpectedValueException;
 
 use function call_user_func;
