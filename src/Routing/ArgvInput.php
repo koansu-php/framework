@@ -6,15 +6,18 @@
 
 namespace Koansu\Routing;
 
+use InvalidArgumentException;
 use Koansu\Console\ArgumentVector;
 use Koansu\Core\Exceptions\ConfigurationException;
+use Koansu\Core\ImmutableMessage;
 use Koansu\Core\Message;
 use Koansu\Core\None;
 use Koansu\Core\Url;
 use Koansu\Routing\Contracts\Input;
 use Koansu\Routing\Exceptions\MissingRequiredArgumentException;
-use Koansu\Core\ImmutableMessage;
 use LogicException;
+
+use function is_array;
 
 /**
  * @property-read array         argv
@@ -117,6 +120,36 @@ class ArgvInput extends ImmutableMessage implements Input
         $this->parseIfNotParsed();
         return $this->options[$name] ?? $default;
     }
+
+    public function getFrom(string $from, $parameter = '')
+    {
+        if (is_array($parameter)) {
+            return $this->collectFrom($from, $parameter);
+        }
+
+        if ($from === Message::POOL_CUSTOM) {
+            return $parameter ? $this->custom[$parameter] ?? null : $this->custom;
+        }
+
+        if ($from !== Message::POOL_ARGV) {
+            throw new InvalidArgumentException("ArgvInput only gets parameters from custom and argv, not $from");
+        }
+
+        if (!$this->matchedRoute) {
+            return $this->argv[$parameter] ?? null;
+        }
+
+        $this->parseIfNotParsed();
+
+        if (isset($this->arguments[$parameter])) {
+            return $this->arguments[$parameter];
+        }
+        if (isset($this->options[$parameter])) {
+            return $this->options[$parameter];
+        }
+        return null;
+    }
+
 
     /**
      * @return bool
@@ -330,15 +363,6 @@ class ArgvInput extends ImmutableMessage implements Input
             $this->argv = $attributes['argv'];
         }
         $this->applyInputTrait($attributes);
-    }
-
-    protected function copyStateInto(array &$attributes)
-    {
-        if (!isset($attributes['argv'])) {
-            $attributes['argv'] = $this->argv;
-        }
-        $this->copyInputTraitStateInto($attributes);
-        parent::copyStateInto($attributes);
     }
 
     /**

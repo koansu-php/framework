@@ -84,6 +84,8 @@ class Application extends Container implements ContainerContract, HasMethodHooks
 
     public const STEP_LISTEN = 'listen';
 
+    public const EVENT_HANDLED = 'handled';
+
     /**
      * @var string
      **/
@@ -518,7 +520,9 @@ class Application extends Container implements ContainerContract, HasMethodHooks
 
         $in->read(function (Input $input) use ($handler, $out) {
             $this->currentInput = $input;
+            $this->listeners->call(self::EVENT_HANDLED, [$input], ListenerContainer::BEFORE);
             $handler($input, $out, $this);
+            $this->listeners->call(self::EVENT_HANDLED, [$input], ListenerContainer::AFTER);
         });
 
         $this->runStep(self::STEP_LISTEN, [$this, $in, $out], [ListenerContainer::AFTER]);

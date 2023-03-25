@@ -1109,6 +1109,87 @@ class ValidatorTest extends TestCase
         $this->assertSame($awaited, $validator->validate($input));
     }
 
+    public function test_cast_scalar_rules_with_empty_string()
+    {
+        $rules = [
+            'id'        => 'int',
+            'weight'    => 'numeric',
+            'name'      => 'string',
+            'married'   => 'bool',
+            'phone'     => 'string'
+        ];
+        $validator = $this->make($rules);
+        $input = [
+            'id'    => '554',
+            'weight'    => '90.75',
+            'name'      => 'Uncle Tommy',
+            'married'   => "1",
+            'phone'     => ''
+        ];
+        $awaited = [
+            'id'        => 554,
+            'weight'    => 90.75,
+            'name'      => 'Uncle Tommy',
+            'married'   => true,
+            'phone'     => ''
+        ];
+        $this->assertSame($awaited, $validator->validate($input));
+    }
+
+    public function test_cast_scalar_rules_with_empty_string_for_numbers_removes_keys()
+    {
+        $rules = [
+            'id'        => 'int',
+            'weight'    => 'numeric',
+            'name'      => 'string',
+            'married'   => 'bool',
+            'phone'     => 'string'
+        ];
+        $validator = $this->make($rules);
+        $input = [
+            'id'        => '',
+            'weight'    => '',
+            'name'      => 'Uncle Tommy',
+            'married'   => "1",
+            'phone'     => ''
+        ];
+        $awaited = [
+            //'id'        => 554,
+//            'weight'    => 90.75,
+            'name'      => 'Uncle Tommy',
+            'married'   => true,
+            'phone'     => ''
+        ];
+        $this->assertSame($awaited, $validator->validate($input));
+    }
+
+    public function test_cast_scalar_rules_with_null_for_numbers_removes_keys()
+    {
+        $rules = [
+            'id'        => 'int',
+            'weight'    => 'numeric',
+            'name'      => 'string',
+            'married'   => 'bool',
+            'phone'     => 'string'
+        ];
+        $validator = $this->make($rules);
+        $input = [
+            'id'        => null,
+            'weight'    => null,
+            'name'      => 'Uncle Tommy',
+            'married'   => "1",
+            'phone'     => ''
+        ];
+        $awaited = [
+            //'id'        => 554,
+//            'weight'    => 90.75,
+            'name'      => 'Uncle Tommy',
+            'married'   => true,
+            'phone'     => ''
+        ];
+        $this->assertSame($awaited, $validator->validate($input));
+    }
+
     public function test_cast_date_values()
     {
         $rules = [

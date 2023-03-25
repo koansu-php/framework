@@ -3,16 +3,18 @@
  *  * Created by mtils on 28.10.2022 at 16:28.
  **/
 
-namespace Koansu\Routing;
+namespace Koansu\Routing\Middleware;
 
 use Koansu\Core\ConstraintParsingTrait;
 use Koansu\Core\Exceptions\Termination;
 use Koansu\Core\Contracts\SupportsCustomFactory;
+use Koansu\Routing\CallableAsInputHandler;
 use Koansu\Routing\Contracts\Input;
 use Koansu\Routing\Contracts\MiddlewareCollection as MiddlewareCollectionContract;
 use Koansu\Core\Exceptions\ConfigurationException;
 use Koansu\Core\Response;
 use Koansu\Core\CustomFactoryTrait;
+use Koansu\Routing\MiddlewareCollection;
 use ReflectionException;
 
 /**

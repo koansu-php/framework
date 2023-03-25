@@ -5,14 +5,15 @@
 
 namespace Koansu\Routing;
 
+use Koansu\Core\Exceptions\HandlerNotFoundException;
+use Koansu\Core\Response;
+use Koansu\DependencyInjection\Lambda;
 use Koansu\Routing\Contracts\Input;
 use Koansu\Routing\Contracts\InputHandler as InputHandlerContract;
-use Koansu\Routing\Exceptions\NoInputHandlerException;
 use Koansu\Routing\Contracts\MiddlewareCollection as CollectionContract;
-use Koansu\Core\Exceptions\HandlerNotFoundException;
-use Koansu\DependencyInjection\Lambda;
-use Koansu\Core\Response;
+use Koansu\Routing\Exceptions\NoInputHandlerException;
 use LogicException;
+
 use function array_merge;
 use function call_user_func;
 use function current;

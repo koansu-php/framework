@@ -42,24 +42,6 @@ class BenchmarkExtension extends AppExtension
             Benchmark::mark('Booted');
         });
 
-        $this->app->onAfter(MiddlewareCollection::class, function (MiddlewareCollection $middlewares) {
-            $middlewares->add('benchmark', function (Input $input, callable $next) {
-                if (!$input instanceof HttpInput) {
-                    return $next($input);
-                }
-                /** @var Response $response */
-                $response = $next($input);
-                $renderer = new JSConsoleRenderer();
-                $benchResult = $renderer->render(Benchmark::instance());
-                $payload = $response->payload;
-                if (!Type::isStringable($payload)) {
-                    return $response;
-                }
-                $output = is_object($response->payload) && method_exists($response->payload, '__toString') ? $response->payload->__toString() : (string)$response->payload;
-                return $response->withPayload(str_replace('</body>', "$benchResult\n</body>", $output));
-            })->after('handle');
-        });
-
         $this->app->onAfter(RoutedInputHandler::class, function (RoutedInputHandler $handler) {
             $handler->onBefore('call', function () {
                 Benchmark::mark('Routed');
@@ -70,5 +52,25 @@ class BenchmarkExtension extends AppExtension
         });
 
     }
+
+    protected function addMiddleware(MiddlewareCollection $middlewares): void
+    {
+        $middlewares->add('benchmark', function (Input $input, callable $next) {
+            if (!$input instanceof HttpInput) {
+                return $next($input);
+            }
+            /** @var Response $response */
+            $response = $next($input);
+            $renderer = new JSConsoleRenderer();
+            $benchResult = $renderer->render(Benchmark::instance());
+            $payload = $response->payload;
+            if (!Type::isStringable($payload)) {
+                return $response;
+            }
+            $output = is_object($response->payload) && method_exists($response->payload, '__toString') ? $response->payload->__toString() : (string)$response->payload;
+            return $response->withPayload(str_replace('</body>', "$benchResult\n</body>", $output));
+        })->after('handle');
+    }
+
 
 }

@@ -59,7 +59,7 @@ class Caster
             if ($this->constraintCastsToFloat($constraint, $params)) {
                 return $this->castToFloat($value, $formats);
             }
-            if ($this->constraintCastsToDateTime($constraint, $params)) {
+            if ($this->constraintCastsToDateTime($constraint, $params) && $value !== null) {
                 $format = $this->getDateFormat($constraint, $params, $formats);
                 $dateTime = $this->castToDateTime($value, $format);
                 if ($constraint == 'date' && $dateTime instanceof PointInTime) {
@@ -87,12 +87,16 @@ class Caster
     /**
      * @param mixed $value
      * @param array $formats
-     * @return int
+     * @return ?int
      */
-    public function castToInt($value, array $formats=[]) : int
+    public function castToInt($value, array $formats=[]) : ?int
     {
         if (is_int($value)) {
             return $value;
+        }
+        // We cast input for a number that is empty or null as nothing
+        if ($value === '' || $value === null) {
+            return null;
         }
         return (int)$this->castToFloat($value, $formats);
     }
@@ -100,13 +104,19 @@ class Caster
     /**
      * @param mixed $value
      * @param array $formats
-     * @return float
+     * @return ?float
      */
-    public function castToFloat($value, array $formats=[]) : float
+    public function castToFloat($value, array $formats=[]) : ?float
     {
         if (is_float($value)) {
             return $value;
         }
+
+        // We cast input for a number that is empty or null as nothing
+        if ($value === '' || $value === null) {
+            return null;
+        }
+
         $cleaned = str_replace($this->thousandsSeparator($formats), '', $value);
         $decimalSeparator = $this->decimalSeparator($formats);
         if ($decimalSeparator != '.') {

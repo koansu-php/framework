@@ -107,7 +107,7 @@ class Cookie
         $this->__set('domain', $domain ?: '');
         $this->__set('secure', $secure === null ? self::$defaultSecure : $secure);
         $this->__set('httpOnly', $httpOnly === null ? self::$defaultHttpOnly : $httpOnly);
-        $this->__set('sameSite', $sameSite === null ? self::$defaultSameSite : $sameSite);
+        $this->__set('sameSite', $sameSite ?: self::$defaultSameSite);
 
     }
 
@@ -163,7 +163,7 @@ class Cookie
                 return;
             case 'sameSite':
                 if (!in_array($value, [self::NONE, self::LAX, self::STRICT])) {
-                    throw new UnexpectedValueException('sameSite has to be none,lax or strict');
+                    throw new UnexpectedValueException("sameSite has to be none,lax or strict not $value");
                 }
                 $this->sameSite = $value;
                 return;

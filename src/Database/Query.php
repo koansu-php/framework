@@ -83,9 +83,10 @@ class Query extends BaseQuery implements Result, Paginatable, SelfRenderable
     {
 
         $result = $this->runPaginated($page, $perPage);
+        $totalCount = $this->getTotalCount();
 
         if ($this->paginatorFactory) {
-            return call_user_func($this->paginatorFactory, $result, $this, $page, $perPage);
+            return call_user_func($this->paginatorFactory, $result, $totalCount, $this, $page, $perPage);
         }
 
         if (!$this->paginatorClassExists()) {
@@ -93,7 +94,7 @@ class Query extends BaseQuery implements Result, Paginatable, SelfRenderable
         }
 
         $paginator = new Paginator($page, $perPage);
-        return $paginator->setResult($result, $this->getTotalCount());
+        return $paginator->setResult($result, $totalCount);
     }
 
     /**

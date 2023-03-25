@@ -5,15 +5,13 @@
 
 namespace Koansu\Skeleton;
 
-use LogicException;
-use Koansu\Routing\Contracts\RouteRegistry;
 use Koansu\Routing\Contracts\MiddlewareCollection;
+use Koansu\Routing\Contracts\RouteRegistry;
+use LogicException;
 
 use function array_shift;
-use function get_class;
 use function is_array;
 use function is_object;
-use function is_string;
 use function spl_object_hash;
 
 abstract class AppExtension
@@ -85,22 +83,22 @@ abstract class AppExtension
 
     public function configure() : void
     {
-
+        //
     }
 
     public function bind() : void
     {
-
+        //
     }
 
     public function boot() : void
     {
-
+        //
     }
 
     public function listen() : void
     {
-
+        //
     }
 
     /**
@@ -271,7 +269,7 @@ abstract class AppExtension
 
     protected function registerMiddlewareMethod() : void
     {
-        $this->app->onAfter(MiddlewareCollection::class, function (MiddlewareCollection $collection) {
+        $this->app->onAfter('middleware', function (MiddlewareCollection $collection) {
             $this->addMiddleware($collection);
         });
     }

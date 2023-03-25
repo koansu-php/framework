@@ -120,6 +120,22 @@ interface Input extends ArrayAccess, IteratorAggregate, Countable
     const ALL = '*';
 
     /**
+     * Return one or many parameters from an explicit source (like query, body, custom, ...).
+     * Omit the second parameter to get the complete source array.
+     *
+     * @param string $from
+     * @param string|string[] $parameter
+     * @return mixed
+     *
+     * @noinspection PhpMissingReturnTypeInspection
+     * @noinspection PhpMissingParamTypeInspection
+     *
+     * @see self::FROM_QUERY
+     *
+     */
+    public function getFrom(string $from, $parameter='');
+
+    /**
      * Return the completely routed url. (Not only the path)
      *
      * @return Url

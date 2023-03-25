@@ -5,6 +5,7 @@
 
 namespace Koansu\Tests\Routing;
 
+use Koansu\Core\Message;
 use Koansu\Routing\HttpInput;
 use Koansu\Tests\TestCase;
 
@@ -544,6 +545,65 @@ class HttpInputTest extends TestCase
 
 
     }
+
+    /**
+     * @test
+     **/
+    public function getFrom_returns_from_correct_source()
+    {
+        $payload = 'foo';
+        $headers = [];
+        $query = [
+            'get' => 'foo'
+        ];
+        $body = [
+            'post' => 'bar',
+            'a' => 'd'
+        ];
+        $cookie = [
+            'session_id' => 'abcd',
+            'timezone' => 'GMT',
+            'app_lang' => 'en'
+        ];
+
+        $files = [];
+        $server = [];
+        $custom = [
+            'a' => 'b'
+        ];
+        $input = $this->input(
+            $payload,
+            $headers,
+            $query,
+            $body,
+            $cookie,
+            $files,
+            $server,
+            $custom
+        );
+
+        $this->assertEquals(
+            $query['get'],
+            $input->getFrom(Input::FROM_QUERY, 'get')
+        );
+        $this->assertEquals($query, $input->getFrom(Input::FROM_QUERY));
+
+        $this->assertEquals($body, $input->getFrom(Input::FROM_BODY));
+        $this->assertEquals(
+            $body,
+            $input->getFrom(Input::FROM_BODY, ['post', 'a'])
+        );
+
+        $this->assertEquals($cookie['app_lang'], $input->getFrom(Input::FROM_COOKIE, 'app_lang'));
+
+        $cookieResult = ['app_lang' => $cookie['app_lang'], 'session_id' => $cookie['session_id']];
+
+        $this->assertEquals($cookieResult, $input->getFrom(Input::FROM_COOKIE, ['app_lang', 'session_id']));
+
+        $this->assertEquals($custom['a'], $input->getFrom(Message::POOL_CUSTOM, 'a'));
+
+    }
+
 
     protected function input(...$args) : HttpInput
     {

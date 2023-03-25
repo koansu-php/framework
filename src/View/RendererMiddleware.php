@@ -12,10 +12,6 @@ use Koansu\Core\RenderData;
 use Koansu\Core\Response;
 use Koansu\Routing\Contracts\Input;
 
-use Koansu\Testing\Debug;
-
-use function xdebug_break;
-
 class RendererMiddleware implements Extendable
 {
     use ExtendableTrait;
@@ -66,10 +62,15 @@ class RendererMiddleware implements Extendable
      * @param Input $input
      * @param SelfRenderable $item
      */
-    protected function assignRenderer(Input $input, SelfRenderable $item)
+    protected function assignRenderer(Input $input, SelfRenderable $item) : void
     {
-        if ($renderer = $this->renderer($input, $item)) {
-            $item->setRenderer($renderer);
+        if (!$item instanceof RenderData) {
+            return;
         }
+        if (!$renderer = $this->renderer($input, $item)) {
+            return;
+        }
+        $item->setRenderer($renderer);
+
     }
 }

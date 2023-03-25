@@ -5,12 +5,12 @@
 
 namespace Koansu\Tests\Routing;
 
+use Koansu\Core\Message;
 use Koansu\Core\Url;
 use Koansu\Routing\ArgvInput;
 use Koansu\Routing\Command;
 use Koansu\Routing\Contracts\Input;
 use Koansu\Routing\Route;
-use Koansu\Routing\RouteScope;
 use Koansu\Tests\TestCase;
 
 use function get_class;
@@ -231,10 +231,36 @@ class ArgvInputTest extends TestCase
         $this->assertSame($route, $fork->getMatchedRoute());
         $this->assertEquals('tenant-44', $fork->getRouteScope());
 
-
-
-
     }
+
+    /**
+     * @test
+     **/
+    public function test_getFrom()
+    {
+        $argv = ['console', 'users:show', '--parameters=3', '--long'];
+        $custom = ['foo' => 'bar'];
+
+        $route = new Route('GET', 'users', '');
+        $command = (new Command('users:index'))
+            ->argument('route')
+            ->option('parameters=')
+            ->option('long');
+
+        $route->command($command);
+
+        $handler = function () {};
+        $parameters = [3];
+
+        $input = $this->make($argv)->with($custom);
+
+        $input = $input->makeRouted($route, $handler, $parameters);
+
+        $this->assertEquals('3', $input->getFrom(Message::POOL_ARGV, 'parameters'));
+        $this->assertTrue($input->getFrom(Message::POOL_ARGV, 'long'));
+        $this->assertEquals('users:show', $input->getFrom(Message::POOL_ARGV, 'route'));
+    }
+
 
     /**
      * @param array $argv

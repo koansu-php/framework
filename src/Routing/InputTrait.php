@@ -345,4 +345,21 @@ trait InputTrait
     {
         $this->routeScope = $scope;
     }
+
+    /**
+     * Helper method for getFrom() if second parameter is an array
+     *
+     * @param string $from
+     * @param string[] $keys
+     *
+     * @return array
+     */
+    protected function collectFrom(string $from, array $keys) : array
+    {
+        $results = [];
+        foreach ($keys as $key) {
+            $results[$key] = $this->getFrom($from, $key);
+        }
+        return $results;
+    }
 }

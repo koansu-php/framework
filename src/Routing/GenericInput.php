@@ -5,11 +5,12 @@
 
 namespace Koansu\Routing;
 
+use InvalidArgumentException;
 use Koansu\Core\Message;
 use Koansu\Core\Url;
 use Koansu\Routing\Contracts\Input;
-use Koansu\Routing\Route;
-use Koansu\Routing\RouteScope;
+
+use function is_array;
 
 class GenericInput extends Message implements Input
 {
@@ -26,6 +27,17 @@ class GenericInput extends Message implements Input
         if (!$this->clientType) {
             $this->clientType = Input::CLIENT_WEB;
         }
+    }
+
+    public function getFrom(string $from, $parameter = '')
+    {
+        if ($from != Message::POOL_CUSTOM) {
+            throw new InvalidArgumentException("GenericInput just has custom input, no from $from");
+        }
+        if (is_array($parameter)) {
+            return $this->collectFrom($from, $parameter);
+        }
+        return $parameter ? $this->custom[$parameter] ?? null : $this->custom;
     }
 
     public function setDeterminedContentType(string $contentType) : GenericInput

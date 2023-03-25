@@ -15,9 +15,7 @@ use Koansu\Expression\Constraint;
 use Koansu\Expression\ConstraintGroup;
 use Koansu\Validation\Contracts\Validation;
 use Koansu\Validation\Contracts\Validator as ValidatorContract;
-
 use Koansu\Validation\Exceptions\ValidationException;
-
 use ReflectionException;
 
 use function array_key_exists;
@@ -248,6 +246,11 @@ class Validator implements ValidatorContract, HasMethodHooks
             $preparedConstraints = [];
             foreach ($constraints as $constraint=>$params) {
                 if (!$this->canBeOmittedOnUpdate($constraint)) {
+                    $preparedConstraints[$constraint] = $params;
+                    continue;
+                }
+                // We should remove the rule only if the data was not passed
+                if (array_key_exists($key, $input)) {
                     $preparedConstraints[$constraint] = $params;
                 }
             }

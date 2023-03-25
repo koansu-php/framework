@@ -6,18 +6,18 @@
 namespace Koansu\Database;
 
 use Koansu\Core\Contracts\Extendable;
+use Koansu\Core\Contracts\Subscribable;
 use Koansu\Core\ExtendableTrait;
+use Koansu\Core\SubscribableTrait;
 use Koansu\Core\Type;
 use Koansu\Core\Url;
 use Koansu\Database\Contracts\DatabaseConnection;
 use TypeError;
 
-use function func_get_args;
-use function var_dump;
-
-class DatabaseConnectionFactory implements Extendable
+class DatabaseConnectionFactory implements Extendable, Subscribable
 {
     use ExtendableTrait;
+    use SubscribableTrait;
 
     /**
      * This is a helper constant. Everytime you pass this constant to the
@@ -61,6 +61,8 @@ class DatabaseConnectionFactory implements Extendable
         if (!$connection instanceof DatabaseConnection) {
             throw new TypeError("The handler for $url did not return a DatabaseConnection, but " . Type::of($connection));
         }
+
+        $this->callOnListeners('created', [$connection]);
 
         $this->connections[$key] = $connection;
         $this->connections[(string)$connection->url()] = $connection;
@@ -133,4 +135,14 @@ class DatabaseConnectionFactory implements Extendable
         $this->defaultConnectionName = $defaultConnectionName;
     }
 
+    /**
+     * Call the callable when a connection was created.
+     *
+     * @param callable $listener
+     * @return void
+     */
+    public function onCreated(callable $listener) : void
+    {
+        $this->on('created', $listener);
+    }
 }

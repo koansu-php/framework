@@ -6,13 +6,13 @@
 namespace Koansu\Routing;
 
 use InvalidArgumentException;
+use Koansu\Core\Message;
 use Koansu\Core\None;
 use Koansu\Core\Stream;
 use Koansu\Core\Url;
 use Koansu\Http\HttpRequest;
 use Koansu\Http\Psr\UploadedFile;
 use Koansu\Routing\Contracts\Input;
-use Koansu\Routing\Contracts\Session;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
 
@@ -53,7 +53,7 @@ class HttpInput extends HttpRequest implements Input, ServerRequestInterface
     ];
 
     /**
-     * @var Session
+     * @var Session|null
      */
     protected $session;
 
@@ -104,6 +104,20 @@ class HttpInput extends HttpRequest implements Input, ServerRequestInterface
             return $body[$key];
         }
         return $default;
+    }
+
+    public function getFrom(string $from, $parameter = '')
+    {
+        if (is_array($parameter)) {
+            return $this->collectFrom($from, $parameter);
+        }
+        if (isset($this->request[$from])) {
+            return $parameter ? $this->request[$from][$parameter] ?? null : $this->request[$from];
+        }
+        if ($from == Message::POOL_CUSTOM) {
+            return $parameter ? $this->custom[$parameter] ?? null : $this->custom;
+        }
+        throw new InvalidArgumentException("Unknown parameter source $from");
     }
 
     /**
@@ -184,7 +198,9 @@ class HttpInput extends HttpRequest implements Input, ServerRequestInterface
     /** @noinspection PhpMissingReturnTypeInspection */
     public function withCookieParams(array $cookies)
     {
-        return $this->replicate([Input::FROM_COOKIE => $cookies]);
+        $copy = $this->replicate();
+        $copy->request[Input::FROM_COOKIE] = $cookies;
+        return $copy;
     }
 
     public function getQueryParams() : array

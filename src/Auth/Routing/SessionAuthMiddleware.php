@@ -7,7 +7,7 @@ namespace Koansu\Auth\Routing;
 
 use Koansu\Auth\Contracts\Auth;
 use Koansu\Routing\Contracts\Input;
-use Koansu\Routing\Contracts\Session;
+use Koansu\Routing\Session;
 use Koansu\Routing\ArgvInput;
 use Koansu\Routing\HttpInput;
 use Throwable;

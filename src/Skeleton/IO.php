@@ -137,6 +137,14 @@ class IO implements Extendable
         }
     }
 
+    public static function instance() : IO
+    {
+        if (!self::$staticInstance) {
+            self::$staticInstance = new IO();
+        }
+        return self::$staticInstance;
+    }
+
     /**
      * Shortcut for logging a message.
      *

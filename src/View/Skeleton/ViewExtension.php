@@ -11,6 +11,7 @@ use Koansu\Routing\ArgvInput;
 use Koansu\Routing\Contracts\Input;
 use Koansu\Routing\Contracts\MiddlewareCollection;
 use Koansu\Skeleton\AppExtension;
+use Koansu\Skeleton\IO;
 use Koansu\View\PhpRenderer;
 use Koansu\View\RendererMiddleware;
 
@@ -19,6 +20,7 @@ use Koansu\View\TemplateFinder;
 use function func_num_args;
 use function gettype;
 use function ltrim;
+use function spl_object_id;
 
 class ViewExtension extends AppExtension
 {
@@ -30,9 +32,11 @@ class ViewExtension extends AppExtension
             return $factory;
         }, true);
 
-        $this->app->onAfter(MiddlewareCollection::class, function (MiddlewareCollection $collection) {
-            $collection->add('view-renderer', RendererMiddleware::class);
-        });
+    }
+
+    protected function addMiddleware(MiddlewareCollection $middlewares): void
+    {
+        $middlewares->add('view-renderer', RendererMiddleware::class);
     }
 
     protected function addRenderers(RendererMiddleware $factory)

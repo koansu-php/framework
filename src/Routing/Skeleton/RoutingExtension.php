@@ -5,37 +5,50 @@
 
 namespace Koansu\Routing\Skeleton;
 
+use Koansu\Console\AnsiRenderer;
+use Koansu\Core\Contracts\Serializer as SerializerContract;
+use Koansu\Core\Exceptions\HandlerNotFoundException;
+use Koansu\Core\ImmutableMessage;
 use Koansu\Core\Serializer;
 use Koansu\Core\Serializers\JsonSerializer;
 use Koansu\Core\Url;
 use Koansu\Filesystem\Contracts\Filesystem;
 use Koansu\Filesystem\Storages\SingleFileStorage;
-use Koansu\Routing\HttpInput;
-use Koansu\Routing\RouteCollector;
-use Koansu\Routing\RoutedInputHandler;
-use Koansu\Routing\RouteMiddleware;
-use Koansu\Routing\SessionHandler\FileSessionHandler;
-use Koansu\Routing\SessionMiddleware;
-use Koansu\Skeleton\AppExtension;
-use Koansu\Routing\ResponseFactory;
-use Koansu\Routing\Contracts\ResponseFactory as ResponseFactoryContract;
-use Koansu\Routing\FastRoute\FastRouteDispatcher;
-use Koansu\Routing\Contracts\Dispatcher;
-use Koansu\Routing\MiddlewareCollection;
-use Koansu\Routing\Contracts\MiddlewareCollection as MiddlewareCollectionContract;
-use Koansu\Routing\UrlGenerator;
-use Koansu\Routing\Contracts\UrlGenerator as UrlGeneratorContract;
-use Koansu\Routing\Contracts\Input;
-use Koansu\Routing\RouteRegistry;
-use Koansu\Routing\Contracts\RouteRegistry as RouteRegistryContract;
-use Psr\Http\Message\RequestInterface;
-use UnexpectedValueException;
-use Koansu\Core\Contracts\Serializer as SerializerContract;
-use Koansu\Routing\Router;
-use Koansu\Routing\Contracts\Router as RouterContract;
 use Koansu\Routing\CompilableRouter;
 use Koansu\Routing\ConsoleDispatcher;
-use Koansu\Console\AnsiRenderer;
+use Koansu\Routing\Contracts\Dispatcher;
+use Koansu\Routing\Contracts\Input;
+use Koansu\Routing\Contracts\MiddlewareCollection as MiddlewareCollectionContract;
+use Koansu\Routing\Contracts\ResponseFactory as ResponseFactoryContract;
+use Koansu\Routing\Contracts\Router as RouterContract;
+use Koansu\Routing\Contracts\RouteRegistry as RouteRegistryContract;
+use Koansu\Routing\Contracts\UrlGenerator as UrlGeneratorContract;
+use Koansu\Routing\FastRoute\FastRouteDispatcher;
+use Koansu\Routing\HttpInput;
+use Koansu\Routing\Middleware\CsrfTokenMiddleware;
+use Koansu\Routing\Middleware\FlashDataMiddleware;
+use Koansu\Routing\Middleware\MethodOverwriteMiddleware;
+use Koansu\Routing\Middleware\RouteMiddleware;
+use Koansu\Routing\Middleware\SessionGuard;
+use Koansu\Routing\MiddlewareCollection;
+use Koansu\Routing\ResponseFactory;
+use Koansu\Routing\RouteCollector;
+use Koansu\Routing\RoutedInputHandler;
+use Koansu\Routing\Router;
+use Koansu\Routing\RouteRegistry;
+use Koansu\Routing\SessionHandler\ArraySessionHandler;
+use Koansu\Routing\SessionHandler\FileSessionHandler;
+use Koansu\Routing\UrlGenerator;
+use Koansu\Skeleton\AppExtension;
+use Psr\Http\Message\RequestInterface;
+use SessionHandler;
+use SessionHandlerInterface;
+use UnexpectedValueException;
+
+use function call_user_func;
+use function method_exists;
+use function spl_object_hash;
+use function ucwords;
 
 
 class RoutingExtension extends AppExtension
@@ -49,6 +62,8 @@ class RoutingExtension extends AppExtension
         MiddlewareCollection::class => MiddlewareCollectionContract::class,
         UrlGenerator::class         => UrlGeneratorContract::class
     ];
+
+    protected $knownCollections = [];
 
     protected $defaultSessionClients = [
         Input::CLIENT_WEB,
@@ -83,16 +98,20 @@ class RoutingExtension extends AppExtension
             return $this->app->get(RouterContract::class);
         });
 
+        $this->app->share('middleware', function () {
+            return $this->app->create(MiddlewareCollectionContract::class);
+        });
+
+        $this->app->share(SessionGuard::class, function () {
+            return $this->createSessionGuard();
+        });
+
         $this->app->bind(CompilableRouter::class, function () {
             return $this->createCompilableRouter();
         });
 
         $this->app->onAfter(ConsoleDispatcher::class, function (ConsoleDispatcher $dispatcher) {
             $dispatcher->setFallbackCommand('commands');
-        });
-
-        $this->app->onAfter(MiddlewareCollectionContract::class, function (MiddlewareCollectionContract $middlewares) {
-            $this->addDefaultMiddleware($middlewares);
         });
 
         $this->app->on(AnsiRenderer::class, function (AnsiRenderer $renderer) {
@@ -238,11 +257,16 @@ class RoutingExtension extends AppExtension
         ]);
     }
 
-    protected function addDefaultMiddleware(MiddlewareCollectionContract $collection)
+    protected function addMiddleware(MiddlewareCollectionContract $collection) : void
     {
-
+        $hash = spl_object_hash($collection);
+        if (isset($this->knownCollections[$hash])) {
+            //return;
+        }
+        $this->knownCollections[$hash] = true;
         $this->addClientTypeMiddleware($collection);
         $this->addRouteScopeMiddleware($collection);
+        $this->addMethodOverwriteMiddleware($collection);
         $this->addSessionMiddleware($collection);
         $this->addRouterToMiddleware($collection);
         $this->addRouteMiddleware($collection);
@@ -287,19 +311,32 @@ class RoutingExtension extends AppExtension
         });
     }
 
+    protected function addMethodOverwriteMiddleware(MiddlewareCollectionContract $collection)
+    {
+        $collection->add('method-overwrite', MethodOverwriteMiddleware::class);
+    }
+
     protected function addSessionMiddleware(MiddlewareCollectionContract $collection)
     {
         $config = $this->app->config('session');
         $clientTypes = $config['clients'] ?? $this->defaultSessionClients;
-        $collection->add('session', SessionMiddleware::class)->clientType(...$clientTypes);
+        //$collection->add('session', SessionMiddleware::class)->clientType(...$clientTypes);
+        $collection->add('session', SessionGuard::class)->clientType(...$clientTypes);
 
-        if (!$config) {
-            return;
-        }
 
-        $this->app->on(SessionMiddleware::class, function (SessionMiddleware $middleware) use ($config) {
-            $this->configureSessionMiddleware($middleware, $config);
+        $this->app->onAfter('handled', function (Input $input) {
+            $last = ImmutableMessage::lastByNext($input);
+            if (!$last instanceof HttpInput) {
+                return;
+            }
+            if ($last->session && $last->session->__toArray()) {
+                $this->app->get(SessionGuard::class)->write($last->session);
+            }
         });
+
+        $collection->add('flash', FlashDataMiddleware::class)->clientType(...$clientTypes);
+        $collection->add('crsf', CsrfTokenMiddleware::class)->clientType(...$clientTypes);
+
     }
 
     protected function addRouterToMiddleware(MiddlewareCollectionContract $collection)
@@ -317,27 +354,53 @@ class RoutingExtension extends AppExtension
         $collection->add('handle', RoutedInputHandler::class);
     }
 
-    protected function configureSessionMiddleware(SessionMiddleware $middleware, array $config)
+    protected function createSessionGuard() : SessionGuard
     {
-        $middleware->extend('files', function () use ($config) {
-            $path = $config['path'] ?? $this->absolutePath('local/storage/sessions');
-            /** @var FileSessionHandler $handler */
-            $handler = $this->app->create(FileSessionHandler::class);
-            $handler->setPath($path);
-            return $handler;
-        });
+        $config = $this->app->config('session');
+
+        /** @var SessionGuard $guard */
+        $guard = $this->app->create(SessionGuard::class, [
+            'handler'       => $this->createConfiguredSessionHandler($config),
+            'serializer'    => $this->app->create(Serializer::class)
+        ]);
 
         if (isset($config['cookie'])) {
-            $middleware->setCookieConfig($config['cookie']);
+            $guard->setCookieConfig($config['cookie']);
         }
-        if (isset($config['driver']) && $config['driver']) {
-            $middleware->setDriver($config['driver']);
+
+        return $guard;
+    }
+
+    protected function createConfiguredSessionHandler(array $config) : SessionHandlerInterface
+    {
+        $driver = $config['driver'] ?? 'native';
+
+        $methodName = 'create' . ucwords($driver) . 'SessionHandler';
+
+        if (method_exists($this, $methodName)) {
+            return call_user_func([$this, $methodName], $config);
         }
-        if (isset($config['driver']) && $config['driver']) {
-            $middleware->setDriver($config['driver']);
-        }
-        if (isset($config['serverside_lifetime']) && $config['serverside_lifetime']) {
-            $middleware->setLifeTime((int)$config['serverside_lifetime']);
-        }
+
+        throw new HandlerNotFoundException("No handler found for session driver $driver");
+    }
+
+    protected function createNativeSessionHandler(array $config) : SessionHandler
+    {
+        return new SessionHandler();
+    }
+
+    protected function createArraySessionHandler(array $config) : ArraySessionHandler
+    {
+        $data = [];
+        $lifeTime = $config['serverside_lifetime'] ?? 120;
+        return (new ArraySessionHandler($data))->setLifeTime($lifeTime);
+    }
+
+    protected function createFilesSessionHandler(array $config) : FileSessionHandler
+    {
+        $path = $config['path'] ?? $this->absolutePath('local/storage/sessions');
+        /** @var FileSessionHandler $handler */
+        $handler = $this->app->create(FileSessionHandler::class);
+        return $handler->setPath($path);
     }
 }

@@ -184,12 +184,13 @@ class QueryFunctionalTest extends AbstractDatabaseTest
         }
         $query->join('contacts')->on('users.contact_id', 'contacts.id');
 
-        $query->createPaginatorBy(function ($result, $query, $page, $perPage) {
+        $query->createPaginatorBy(function ($result, $totalCount, $query, $page, $perPage) {
             return [
-                'result' => $result,
-                'query'  => $query,
-                'page'   => $page,
-                'perPage'=> $perPage
+                'result'        => $result,
+                'query'         => $query,
+                'page'          => $page,
+                'perPage'       => $perPage,
+                'totalCount'    => $totalCount
             ];
         });
 

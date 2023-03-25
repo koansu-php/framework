@@ -65,17 +65,17 @@ class MatcherBaseValidator
         $validated = [];
 
         foreach ($baseRules as $key=>$rule) {
-
             $values = $this->extractValue($input, $key);
+            $requiredFailed = false;
 
             if (!$this->checkRequiredRules($rule, $input, $key, $validation, $values)) {
-                continue;
+                $requiredFailed = true;
             }
 
             foreach ($values as $path=>$value) {
                 $isValid = true;
                 foreach ($rule as $name=>$args) {
-                    if (in_array($name, $this->required_rules)) {
+                    if (in_array($name, $this->required_rules) || $requiredFailed) {
                         continue;
                     }
                     if (!$this->check($value, [$name=>$args], $ormObject, $formats)) {
@@ -86,7 +86,10 @@ class MatcherBaseValidator
 
                 $casted = $isValid ? $this->cast($value, $rule, $ormObject, $formats) : $value;
 
-                Map::set($validated, $this->splitPath($path), $casted);
+                if ($casted !== null) {
+                    Map::set($validated, $this->splitPath($path), $casted);
+                }
+
             }
 
         }
@@ -161,11 +164,15 @@ class MatcherBaseValidator
      */
     protected function extractValue(array $input, string $key) : array
     {
-        if (!$this->isSelector($key)) {
-            return isset($input[$key]) ? [$key=>$input[$key]]: [$key=>null];
+        if ($this->isSelector($key)) {
+            $iterator = (new JsonPathIterator($input, $key))->setKeyPrefix('');
+            return iterator_to_array($iterator);
+
         }
-        $iterator = (new JsonPathIterator($input, $key))->setKeyPrefix('');
-        return iterator_to_array($iterator);
+        if (!isset($input[$key])) {
+            return [$key=>null];
+        }
+        return [$key=>$input[$key]];
     }
 
     /**
@@ -181,12 +188,8 @@ class MatcherBaseValidator
      */
     protected function checkRequiredRules(array $rule, array $input, string $key, Validation $validation, array $extracted=[]) : bool
     {
-        if ($extracted && $extracted !== [$key=>null]) {
-            return true;
-        }
-
         // Check required before others to skip rest if missing
-        if (isset($rule['required']) && !$this->checkRequired($input, $key)) {
+        if (isset($rule['required']) && !$this->checkRequired($input, $key, $extracted)) {
             $validation->addFailure($key, 'required', []);
             return false;
         }
@@ -202,7 +205,7 @@ class MatcherBaseValidator
         }
 
         // Check if not required other rules are ignored
-        if (!isset($rule['required']) && !$this->checkRequired($input, $key)) {
+        if (!isset($rule['required']) && !$this->checkRequired($input, $key, $extracted)) {
             return false;
         }
 
@@ -214,12 +217,21 @@ class MatcherBaseValidator
      * @param string $key
      * @return bool
      */
-    protected function checkRequired(array $input, string $key) : bool
+    protected function checkRequired(array $input, string $key, array $extracted=[]) : bool
     {
-        if (!isset($input[$key])) {
-            return false;
+        $constraint = ['required'=>[]];
+
+        if (!$this->isSelector($key)) {
+            return isset($input[$key]) && $this->check($input[$key], $constraint);
         }
-        return $this->check($input[$key], ['required' => []]);
+
+        $value = $extracted ?: $this->extractValue($input, $key);
+
+        if (isset($value[$key])) {
+            return $this->check($value[$key], $constraint);
+        }
+
+        return $this->check($value, $constraint);
     }
 
     /**

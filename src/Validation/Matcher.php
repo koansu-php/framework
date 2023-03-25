@@ -107,7 +107,7 @@ class Matcher
             array_unshift($arguments, $value);
 
             if ($ormObject) {
-                $arguments[] = $ormObject;
+                $arguments[] = $ormObject; // Creates errors
             }
 
             if (!$this->__call($name, $arguments)) {
@@ -137,6 +137,21 @@ class Matcher
         }
 
         return true;
+    }
+
+    /**
+     * Callable alias to self::match()
+     *
+     * @param mixed                                   $value
+     * @param ConstraintGroup|Constraint|array|string $rule
+     * @param object|null                             $ormObject (optional)
+     *
+     * @return bool
+     * @noinspection PhpMissingParamTypeInspection
+     */
+    public function __invoke($value, $rule, $ormObject=null) : bool
+    {
+        return $this->match($value, $rule, $ormObject);
     }
 
     /**
@@ -1203,7 +1218,7 @@ class Matcher
             return count($value);
         }
 
-        return mb_strlen($value);
+        return $value === null ? 0 : mb_strlen($value);
     }
 
     /**

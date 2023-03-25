@@ -7,15 +7,13 @@ namespace Koansu\Routing;
 
 use ArrayIterator;
 use Closure;
-use Koansu\Routing\Contracts\Input;
-use Koansu\Core\Response;
-use Koansu\Routing\Contracts\MiddlewareCollection as MiddlewareCollectionContract;
-use Koansu\Routing\MiddlewarePlacer;
+use Koansu\Core\CustomFactoryTrait;
 use Koansu\Core\DataStructures\StringList;
 use Koansu\Core\Exceptions\KeyNotFoundException;
+use Koansu\Core\Response;
 use Koansu\DependencyInjection\Lambda;
-use Koansu\Core\CustomFactoryTrait;
-use Koansu\Testing\Debug;
+use Koansu\Routing\Contracts\Input;
+use Koansu\Routing\Contracts\MiddlewareCollection as MiddlewareCollectionContract;
 use ReflectionException;
 use Traversable;
 
@@ -23,7 +21,6 @@ use function array_filter;
 use function array_merge;
 use function array_slice;
 use function func_get_args;
-use function get_class;
 use function is_array;
 use function is_string;
 
