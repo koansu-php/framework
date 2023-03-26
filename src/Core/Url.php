@@ -22,11 +22,6 @@ use function rawurlencode;
  *
  * This is the base url implementation. Now it also implement psr
  * URIInterface.
- * Please do either depend on the psr interface OR the ems interface
- * but not both! Perhaps I will remove the psr interface some day...
- * The ems interface is basically properties for getting values, methods
- * for setting values. All with the shortest syntax I could plan.
- * PSR is something different.
  *
  * @property string     $scheme   The scheme (or protocol)
  * @property string     $user     The user part of authority
@@ -130,7 +125,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return self
      **/
-    public function scheme(string $scheme)
+    public function scheme(string $scheme) : Url
     {
         $copy = clone $this;
         $copy->scheme = $scheme;
@@ -144,7 +139,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return self
      **/
-    public function user(string $user)
+    public function user(string $user) : Url
     {
         $copy = clone $this;
         $copy->user = $user;
@@ -158,7 +153,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return self
      **/
-    public function password(string $password)
+    public function password(string $password) : Url
     {
         $copy = clone $this;
         $copy->password = $password;
@@ -171,7 +166,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      * @param string $host
      * @return Url
      */
-    public function host(string $host)
+    public function host(string $host) : Url
     {
         $copy = clone $this;
         $copy->host = $host;
@@ -185,7 +180,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return self
      **/
-    public function port(int $port)
+    public function port(int $port) : Url
     {
         $copy = clone $this;
         $copy->port = $port;
@@ -199,7 +194,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return self
      **/
-    public function path(...$path)
+    public function path(...$path) : Url
     {
         $copy = clone $this;
         $copy->setPath(...$path);
@@ -216,10 +211,11 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return self
      **/
-    public function append(...$segment)
+    public function append(...$segment) : Url
     {
         $copy = clone $this;
-        return $copy->setPath($this->path->copy()->extend($segment));
+        $copy->path = $this->path->copy()->extend($segment);
+        return $copy;
     }
 
     /**
@@ -229,7 +225,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return self
      **/
-    public function prepend(...$segment)
+    public function prepend(...$segment) : Url
     {
         $newPath = $this->path->copy();
 
@@ -249,7 +245,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return self
      **/
-    public function pop(int $count = 1)
+    public function pop(int $count = 1) : Url
     {
         $newPath = $this->path->copy();
         for ($i = 0; $i < $count; ++$i) {
@@ -268,7 +264,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return self
      */
-    public function shift(int $count = 1)
+    public function shift(int $count = 1) : Url
     {
         $newPath = $this->path->copy();
         for ($i = 0; $i < $count; ++$i) {
@@ -288,7 +284,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return self
      **/
-    public function query($key, $value = null)
+    public function query($key, $value = null) : Url
     {
         $query = $value ? [$key => $value] : $key;
         $copy = clone $this;
@@ -303,7 +299,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return self
      */
-    public function without($key)
+    public function without($key) : Url
     {
         $keys = is_array($key) ? $key : func_get_args();
         $query = $this->query;
@@ -325,7 +321,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return self
      **/
-    public function fragment(string $fragment)
+    public function fragment(string $fragment) : Url
     {
         $clone = clone $this;
         $clone->fragment = $fragment;
@@ -664,7 +660,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      * @return static A new instance with the specified scheme.
      * @throws InvalidArgumentException for invalid or unsupported schemes.
      */
-    public function withScheme($scheme)
+    public function withScheme($scheme) : Url
     {
         return $this->scheme($scheme);
     }
@@ -676,7 +672,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      * @param null|string $password The password associated with $user.
      * @return static A new instance with the specified user information.
      */
-    public function withUserInfo($user, $password = null)
+    public function withUserInfo($user, $password = null) : Url
     {
         $copy = $this->user($user);
         if (!$password) {
@@ -692,7 +688,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      * @return static A new instance with the specified host.
      * @throws InvalidArgumentException for invalid hostnames.
      */
-    public function withHost($host)
+    public function withHost($host) : Url
     {
         return $this->host($host);
     }
@@ -705,7 +701,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      * @return static A new instance with the specified port.
      * @throws InvalidArgumentException for invalid ports.
      */
-    public function withPort($port)
+    public function withPort($port) : Url
     {
         return $this->port($port === null ? 0 : $port);
     }
@@ -717,7 +713,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      * @return static A new instance with the specified path.
      * @throws InvalidArgumentException for invalid paths.
      */
-    public function withPath($path)
+    public function withPath($path) : Url
     {
         return $this->path($path);
     }
@@ -729,7 +725,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      * @return static A new instance with the specified query string.
      * @throws InvalidArgumentException for invalid query strings.
      */
-    public function withQuery($query)
+    public function withQuery($query) : Url
     {
         $queryArray = [];
         parse_str($query, $queryArray);
@@ -742,14 +738,14 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      * @param string $fragment The fragment to use with the new instance.
      * @return static A new instance with the specified fragment.
      */
-    public function withFragment($fragment)
+    public function withFragment($fragment) : Url
     {
         return $this->fragment($fragment);
     }
 
     public function __clone()
     {
-        $this->path = $this->path->copy();
+        $this->path = clone $this->path;
         $this->toStringCache = null;
     }
 
@@ -760,7 +756,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return self
      **/
-    protected function fill($url)
+    protected function fill($url) : Url
     {
         $parts = $this->castToArray($url);
 
@@ -864,11 +860,10 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return self
      **/
-    protected function setPath($path)
+    protected function setPath($path) : Url
     {
         if ($path instanceof StringList) {
             $this->path = $path;
-
             return $this;
         }
 
@@ -877,8 +872,8 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
             return $this;
         }
 
-        $hasLeadingSlash = ($path[0] == '/');
-        $hasTrailingSlash = (substr($path, -1) == '/');
+        $hasLeadingSlash = ($path[0] === '/');
+        $hasTrailingSlash = (substr($path, -1) === '/');
 
         $path = is_array($path) ? $path : explode('/', trim($path, '/ '));
 
@@ -900,7 +895,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return self
      **/
-    protected function setQuery($query)
+    protected function setQuery($query) : Url
     {
         $this->query = $this->mergeOrReplaceQuery($query);
 
@@ -915,7 +910,7 @@ class Url extends Str implements UriInterface, IteratorAggregate, ArrayAccess
      *
      * @return array
      **/
-    protected function mergeOrReplaceQuery($query)
+    protected function mergeOrReplaceQuery($query) : array
     {
         if (is_array($query)) {
             return array_merge($this->query, $query);

@@ -188,18 +188,6 @@ class StringList extends Sequence
     }
 
     /**
-     * Copies the list or its extended class.
-     *
-     * @return self
-     */
-    public function copy()
-    {
-        return parent::copy()->setGlue($this->glue)
-                             ->setPrefix($this->prefix)
-                             ->setSuffix($this->suffix);
-    }
-
-    /**
      * @return string
      **/
     public function __toString()

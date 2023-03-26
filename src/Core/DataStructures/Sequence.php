@@ -451,7 +451,7 @@ class Sequence implements Countable, IteratorAggregate, ArrayAccess
      */
     public function copy()
     {
-        return new static($this->source);
+        return clone $this;
     }
 
     /**
