@@ -44,7 +44,7 @@ class Response extends ImmutableMessage
      * Pass more than one parameter to set payload, envelope and status.
      * If $data is not an associative array it will never be taken as attributes.
      *
-     * @param mixed $attributesOrPayload
+     * @param mixed $attributesOrPayload (optional)
      * @param array $envelope
      * @param int $status
      */

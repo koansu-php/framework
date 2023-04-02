@@ -6,24 +6,23 @@
 namespace Koansu\Routing;
 
 use Koansu\Core\Contracts\HasMethodHooks;
-use Koansu\DependencyInjection\Contracts\Container;
 use Koansu\Core\Contracts\SupportsCustomFactory;
+use Koansu\Core\CustomFactoryTrait;
+use Koansu\Core\Exceptions\ConfigurationException;
+use Koansu\Core\HookableTrait;
+use Koansu\Core\Response;
 use Koansu\Core\Type;
+use Koansu\DependencyInjection\Contracts\Container;
+use Koansu\DependencyInjection\Lambda;
+use Koansu\Http\HttpResponse;
+use Koansu\Routing\Contracts\Input as InputContract;
 use Koansu\Routing\Contracts\InputHandler as InputHandlerContract;
 use Koansu\Routing\Contracts\UrlGenerator as UrlGeneratorContract;
 use Koansu\Routing\Contracts\UtilizesInput;
-use Koansu\Core\Exceptions\ConfigurationException;
-use Koansu\Routing\Contracts\Input as InputContract;
-use Koansu\DependencyInjection\Lambda;
-use Koansu\Core\HookableTrait;
-use Koansu\Core\Response;
-use Koansu\Core\CustomFactoryTrait;
-use Koansu\Http\HttpResponse;
 use Psr\Http\Message\ServerRequestInterface;
 use ReflectionException;
 
 use function is_callable;
-use function print_r;
 
 /**
  * Class RoutedInputHandler

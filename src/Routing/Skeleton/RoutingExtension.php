@@ -53,14 +53,12 @@ use function ucwords;
 
 class RoutingExtension extends AppExtension
 {
-    protected $singletons = [
-        ResponseFactory::class  => ResponseFactoryContract::class
-    ];
 
     protected $bindings = [
-        FastRouteDispatcher::class => Dispatcher::class,
+        FastRouteDispatcher::class  => Dispatcher::class,
         MiddlewareCollection::class => MiddlewareCollectionContract::class,
-        UrlGenerator::class         => UrlGeneratorContract::class
+        UrlGenerator::class         => UrlGeneratorContract::class,
+        ResponseFactory::class      => ResponseFactoryContract::class
     ];
 
     protected $knownCollections = [];

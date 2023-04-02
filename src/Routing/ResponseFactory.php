@@ -6,6 +6,7 @@
 
 namespace Koansu\Routing;
 
+use Koansu\Core\Notification;
 use Koansu\Core\RenderData;
 use Koansu\Core\Response;
 use Koansu\Core\Serializers\JsonSerializer;
@@ -17,10 +18,16 @@ use Koansu\Routing\Contracts\ResponseFactory as ResponseFactoryContract;
 use Koansu\Routing\Contracts\UrlGenerator as UrlGeneratorContract;
 use Koansu\Routing\Contracts\UtilizesInput;
 use Koansu\Routing\View\Routing;
+use Koansu\Validation\Contracts\Validation;
 use LogicException;
 use OutOfBoundsException;
+use Psr\Log\LogLevel;
+use Throwable;
 
+use function count;
+use function explode;
 use function in_array;
+use function interface_exists;
 
 
 class ResponseFactory implements ResponseFactoryContract, UtilizesInput
@@ -118,6 +125,10 @@ class ResponseFactory implements ResponseFactoryContract, UtilizesInput
             return $this->redirect('/');
         }
 
+        if (!$this->isClientTypeForRedirects()) {
+            return $this->autoCreateResponse($hint);
+        }
+
         if ($nextUrl = Routing::nextUrl($input)) {
             return $this->redirect($nextUrl);
         }
@@ -133,7 +144,79 @@ class ResponseFactory implements ResponseFactoryContract, UtilizesInput
         return $this->redirect('/');
     }
 
-    protected function guessAction(Input $input) : bool
+    protected function autoCreateResponse($hint=null)
+    {
+        if (!$this->input || !$hint) {
+            return $this->create('')->withStatus(204);
+        }
+
+        $action = $this->guessAction($this->input);
+
+        $status = $action == self::CREATE ? 201 : 200;
+
+        if (!$resource = $this->guessResourceFromRoute($this->input->getMatchedRoute())) {
+            return $this->create('')->withStatus($status);
+        }
+
+        $template = "$resource.show";
+        return $this->template($template, [
+            $resource   => [$hint]
+        ])->withStatus($status);
+    }
+
+
+    public function error(Throwable $error=null) : Response
+    {
+        $data = [];
+
+        $isValidationError = $this->isValidationError($error);
+
+        if ($error && $error->getMessage()) {
+            $level = $isValidationError ? LogLevel::WARNING : LogLevel::ERROR;
+            $data['message'] = new Notification($error->getMessage(), $level);
+        }
+
+        if ($error && $failures = $this->extractErrors($error)) {
+            $data['errors'] = $failures;
+        }
+
+        if (!$this->isClientTypeForRedirects()) {
+            $status = $isValidationError ? 422 : 400;
+            return $this->template('error', $data)->withStatus($status);
+        }
+
+        return $data ? $this->back()->with($data) : $this->back();
+    }
+
+    public function setInput(Input $input)
+    {
+        $this->input = $input;
+        $this->urls = $this->urls->withInput($input);
+    }
+
+    protected function isClientTypeForRedirects() : bool
+    {
+        if (!$this->input instanceof HttpInput) {
+            return false;
+        }
+        $clientType = $this->input->getClientType();
+        return !$clientType || in_array($clientType, [Input::CLIENT_WEB, Input::CLIENT_CMS, Input::CLIENT_AJAX]);
+    }
+
+    protected function isValidationError(Throwable $e=null) : bool
+    {
+        return $e && interface_exists(Validation::class) && $e instanceof Validation;
+    }
+
+    protected function extractErrors(Throwable $e) : array
+    {
+        if (interface_exists(Validation::class) && $e instanceof Validation) {
+            return $e->failures();
+        }
+        return [];
+    }
+
+    protected function guessAction(Input $input) : string
     {
         $action = '';
         if ($route = $input->getMatchedRoute()) {
@@ -170,6 +253,12 @@ class ResponseFactory implements ResponseFactoryContract, UtilizesInput
         return '';
     }
 
+    protected function guessResourceFromRoute(Route $route) : string
+    {
+        $parts = explode('.', $route->name);
+        return count($parts) != 2 ? '' : $parts[0];
+    }
+
     protected function routeEndsWith(Route $route, $suffixes) : bool
     {
         foreach ((array)$suffixes as $suffix) {
@@ -178,18 +267,6 @@ class ResponseFactory implements ResponseFactoryContract, UtilizesInput
             }
         }
         return false;
-    }
-
-    public function error(): Response
-    {
-        return $this->back();
-    }
-
-
-    public function setInput(Input $input)
-    {
-        $this->input = $input;
-        $this->urls = $this->urls->withInput($input);
     }
 
     /**

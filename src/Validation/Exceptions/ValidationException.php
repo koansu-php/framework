@@ -310,6 +310,15 @@ class ValidationException extends RuntimeException implements Validation, JsonSe
         return $this->wasManipulated;
     }
 
+    public static function makeBy(string $field, string $rule, array $parameters=[]) : ValidationException
+    {
+        $failures = [
+            $field => [$rule => $parameters]
+        ];
+        $rules = [$field => [$rule=>$parameters]];
+        return new ValidationException($failures, $rules);
+    }
+
     /**
      * Parse a readable message by the
      * @param string $message

@@ -10,11 +10,17 @@ use Koansu\Core\Url;
 use Koansu\Routing\Contracts\Input;
 use Koansu\Routing\HttpInput;
 use Koansu\Skeleton\Contracts\InputConnection;
+use OutOfBoundsException;
 use Psr\Http\Message\ServerRequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+use function file_get_contents;
 use function function_exists;
 use function getallheaders;
+use function json_decode;
+use function parse_str;
+use function strpos;
+use function strtolower;
 
 class HttpInputConnection extends AbstractConnection implements InputConnection, ServerRequestFactoryInterface
 {
@@ -119,6 +125,10 @@ class HttpInputConnection extends AbstractConnection implements InputConnection,
             'determinedContentType' => 'text/html'
         ];
 
+        if (in_array($attributes['method'], ['PUT', 'PATCH']) && !$attributes[Input::FROM_BODY]) {
+            $attributes[Input::FROM_BODY] = $this->parseBodyParams($attributes['headers']);
+        }
+
         return new HttpInput(
             $attributes,
             $this->headers ?: $this->guessHeaders(),
@@ -128,6 +138,25 @@ class HttpInputConnection extends AbstractConnection implements InputConnection,
             $this->files,
             $server
         );
+    }
+
+    protected function parseBodyParams(array $headers) : array
+    {
+        if (!$contentType = $this->guessContentType($headers)) {
+            throw new OutOfBoundsException('No valid content type could be detected to build body params');
+        }
+        if ($contentType == 'application/x-www-form-urlencoded') {
+            $data = [];
+            parse_str(file_get_contents('php://input'), $data);
+            return $data;
+        }
+        if (strpos($contentType, 'multipart/form-data') === 0) {
+            return $this->parseRawBody(file_get_contents('php://input'));
+        }
+        if (strpos($contentType, 'application/json') === 0) {
+            return json_decode(file_get_contents('php://input'), true);
+        }
+        return [];
     }
 
     /**
@@ -154,5 +183,53 @@ class HttpInputConnection extends AbstractConnection implements InputConnection,
             return [];
         }
         return getallheaders() ?: [];
+    }
+
+    protected function guessContentType(array $headers) : string
+    {
+        foreach ($headers as $name=>$value) {
+            if (strtolower($name) == 'content-type') {
+                return strtolower($value);
+            }
+        }
+        return '';
+    }
+
+    protected function parseRawBody(string $rawBody) : array
+    {
+        $params = [];
+
+        // grab multipart boundary from content type header
+        preg_match('/boundary=(.*)$/', $_SERVER['CONTENT_TYPE'], $matches);
+        $boundary = $matches[1];
+
+        // split content by boundary and get rid of last -- element
+        $blocks = preg_split("/-+$boundary/", $rawBody);
+        array_pop($blocks);
+
+        // loop data blocks
+        foreach ($blocks as $id => $block)
+        {
+            if (empty($block))
+                continue;
+
+            // you'll have to var_dump $block to understand this and maybe replace \n or \r with a visibile char
+
+            // parse uploaded files
+            if (strpos($block, 'application/octet-stream') !== FALSE)
+            {
+                // match "name", then everything after "stream" (optional) except for prepending newlines
+                preg_match('/name=\"([^\"]*)\".*stream[\n|\r]+([^\n\r].*)?$/s', $block, $matches);
+            }
+            // parse all other fields
+            else
+            {
+                // match "name" and optional value in between newline sequences
+                preg_match('/name=\"([^\"]*)\"[\n|\r]+([^\n\r].*)?\r$/s', $block, $matches);
+            }
+            $params[$matches[1]] = $matches[2];
+        }
+
+        return $params;
     }
 }

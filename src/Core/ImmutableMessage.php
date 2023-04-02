@@ -7,7 +7,6 @@ namespace Koansu\Core;
 
 use Koansu\Routing\Contracts\Input;
 
-use function array_key_exists;
 use function func_get_args;
 use function is_array;
 

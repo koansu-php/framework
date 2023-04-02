@@ -7,6 +7,7 @@ namespace Koansu\Routing\Contracts;
 
 use Koansu\Core\Url;
 use Koansu\Core\Response;
+use Throwable;
 
 interface ResponseFactory
 {
@@ -59,7 +60,8 @@ interface ResponseFactory
      * again. To send a user back the form has to send a handle, so we are sure
      * we hit exactly the request that send the user here.
      *
+     * @param Throwable|null $error
      * @return Response
      */
-    public function error() : Response;
+    public function error(Throwable $error=null) : Response;
 }
