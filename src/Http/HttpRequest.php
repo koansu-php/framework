@@ -144,20 +144,4 @@ class HttpRequest extends ImmutableMessage implements RequestInterface
         return $this->replicate(['uri' => $uri, 'preserveHost' => $preserveHost]);
     }
 
-    protected function apply(array $attributes)
-    {
-        if (isset($attributes['url']) && !isset($attributes['uri'])) {
-            $attributes['uri'] = $attributes['url'];
-            unset($attributes['url']);
-        }
-        if (isset($attributes['uri']) && !$attributes['uri'] instanceof Url) {
-            unset($attributes['uri']);
-        }
-        foreach ($attributes as $property=>$value) {
-            if (property_exists($this, $property)) {
-                $this->$property = $value;
-            }
-        }
-    }
-
 }

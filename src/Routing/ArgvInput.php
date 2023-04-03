@@ -357,14 +357,6 @@ class ArgvInput extends ImmutableMessage implements Input
         return $vector;
     }
 
-    protected function apply(array $attributes)
-    {
-        if (isset($attributes['argv'])) {
-            $this->argv = $attributes['argv'];
-        }
-        $this->applyInputTrait($attributes);
-    }
-
     /**
      * @param array $argv
      * @return Url
