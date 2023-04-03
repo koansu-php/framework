@@ -8,7 +8,6 @@ namespace Koansu\Tests;
 use Koansu\Filesystem\LocalFilesystem;
 
 use function basename;
-use function file_exists;
 use function get_class;
 use function is_array;
 use function is_dir;
@@ -20,7 +19,6 @@ use function str_replace;
 use function sys_get_temp_dir;
 use function tempnam;
 use function uniqid;
-
 use function unlink;
 
 use const DIRECTORY_SEPARATOR;
@@ -68,19 +66,24 @@ trait FilesystemMethods
      **/
     protected function tempFileName(string $extension='.tmp') : string
     {
-        $tempDir = sys_get_temp_dir();
-        $prefix = basename(str_replace('\\', '/', get_class($this)));
-        return $tempDir.'/'.uniqid("$prefix-").$extension;
+        $tempName = $this->tempName($extension);
+        $this->_createdFiles[] = $tempName;
+        return $tempName;
     }
 
     /**
      * Generate a temp dirname and return its name
      *
+     * @param bool $remember
      * @return string
-     **/
-    protected function tempDirName() : string
+     */
+    protected function tempDirName(bool $remember=true) : string
     {
-        return $this->tempFileName('');
+        $tempName = $this->tempName('');
+        if ($remember) {
+            $this->_createdDirectories[] = $tempName;
+        }
+        return $tempName;
     }
 
     /**
@@ -90,11 +93,18 @@ trait FilesystemMethods
      **/
     protected function tempDir() : string
     {
-        $tempDirName = $this->tempDirName();
+        $tempDirName = $this->tempDirName(false);
         $fs = $this->newFilesystem();
         $fs->makeDirectory($tempDirName, 0755, true, true);
         $this->_createdDirectories[] = $tempDirName;
         return $tempDirName;
+    }
+
+    protected function tempName(string $extension='') : string
+    {
+        $tempDir = sys_get_temp_dir();
+        $prefix = basename(str_replace('\\', '/', get_class($this)));
+        return $tempDir.'/'.uniqid("$prefix-").$extension;
     }
 
     /**
@@ -197,9 +207,7 @@ trait FilesystemMethods
         }
 
         foreach ($this->_createdFiles as $file) {
-            if (file_exists($file)) {
-                unlink($file);
-            }
+            @unlink($file);
         }
 
         $fs = $this->newFilesystem();
