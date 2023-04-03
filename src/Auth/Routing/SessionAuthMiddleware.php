@@ -31,18 +31,22 @@ class SessionAuthMiddleware
     public function __invoke(Input $input, callable $next)
     {
         if ($input instanceof ArgvInput) {
-            try {
-                $user = $this->auth->specialUser(Auth::SYSTEM);
-            } catch (Throwable $e) {
-                $user = null;
-            }
-            return $next($user ? $input->withUser($user) : $input);
+            return $next($this->tryToAssignSystemUser($input));
         }
         if (!$input instanceof HttpInput || !isset($input->session[$this->sessionKey])) {
             return $next($input->withUser($this->auth->specialUser(Auth::GUEST)));
         }
         $user = $this->auth->userByCredentials($input->session[$this->sessionKey]);
         return $next($input->withUser($user));
+    }
+
+    protected function tryToAssignSystemUser(Input $input) : Input
+    {
+        try {
+            return $input->withUser($this->auth->specialUser(Auth::SYSTEM));
+        } catch (Throwable $e) {
+            return $input;
+        }
     }
 
     /**
