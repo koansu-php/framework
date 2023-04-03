@@ -45,27 +45,11 @@ class HttpRequest extends ImmutableMessage implements RequestInterface
      */
     protected $uri;
 
-    public function __construct($data = [], array $headers=[], Url $url=null)
+    public function __construct(string $method='GET', Url $url=null, array $headers=[], $body='')
     {
-        $this->transport = Message::TRANSPORT_NETWORK;
+        parent::__construct($body, $headers, Message::TYPE_INPUT, Message::TRANSPORT_NETWORK);
+        $this->method = $method;
         $this->uri = $url ?: new Url();
-
-        if ($headers || !is_array($data)) {
-            $data = [
-                'payload' => $data,
-                'envelope' => $headers
-            ];
-        }
-
-        if (is_array($data) && isset($data['headers'])) {
-            $data['envelope'] = $data['headers'];
-        }
-
-        if (isset($data['payload']) && is_array($data['payload']) && !isset($data['custom'])) {
-            $data['custom'] = $data['payload'];
-        }
-        parent::__construct($data);
-        $this->apply($data);
     }
 
     /**
@@ -174,28 +158,6 @@ class HttpRequest extends ImmutableMessage implements RequestInterface
                 $this->$property = $value;
             }
         }
-    }
-
-    protected function copyStateInto(array &$attributes)
-    {
-
-        if (!isset($attributes['protocolVersion'])) {
-            $attributes['protocolVersion'] = $this->protocolVersion;
-        }
-
-        if (!isset($attributes['requestTarget'])) {
-            $attributes['requestTarget'] = $this->requestTarget;
-        }
-
-        if (!isset($attributes['method'])) {
-            $attributes['method'] = $this->method;
-        }
-
-        if (!isset($attributes['uri'])) { //} && !isset($attributes['url'])) {
-            $attributes['uri'] = $this->uri;
-        }
-
-        parent::copyStateInto($attributes);
     }
 
 }

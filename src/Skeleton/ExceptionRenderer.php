@@ -45,11 +45,7 @@ class ExceptionRenderer
         if ($input instanceof ArgvInput) {
             $string = $this->renderConsoleException($e, $input);
         }
-        return new Response([
-                                'payload' => $string,
-                                'contentType' => AnsiRenderer::LINE_CONTENT_TYPE,
-                                'status' => 1
-                            ]);
+        return new Response($string, [], 1, AnsiRenderer::LINE_CONTENT_TYPE);
     }
 
     /**
@@ -149,11 +145,7 @@ class ExceptionRenderer
 
         $html .= '</body></html>';
 
-        return new HttpResponse([
-                                    'contentType' => 'text/html',
-                                    'payload' => $html,
-                                    'status' => 500
-                                ]);
+        return new HttpResponse($html, [], 500, 'text/html');
 
     }
 }

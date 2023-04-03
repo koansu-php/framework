@@ -44,38 +44,16 @@ class Response extends ImmutableMessage
      * Pass more than one parameter to set payload, envelope and status.
      * If $data is not an associative array it will never be taken as attributes.
      *
-     * @param mixed $attributesOrPayload (optional)
-     * @param array $envelope
-     * @param int $status
+     * @param mixed $payload (optional)
+     * @param array $envelope (optional)
+     * @param int $status (optional)
+     * @param string $contentType (optional)
      */
-    public function __construct($attributesOrPayload = null, array $envelope=[], int $status=0)
+    public function __construct($payload = null, array $envelope=[], int $status=0, string $contentType='application/octet-stream')
     {
-        $this->type = Message::TYPE_OUTPUT;
+        parent::__construct($payload, $envelope, Message::TYPE_OUTPUT);
         $this->status = $status;
-        if (!$this->contentType) {
-            $this->contentType = 'application/octet-stream';
-        }
-
-        if (func_num_args() < 2) {
-            $attributes = $this->isAssociative($attributesOrPayload) ? $attributesOrPayload : ['payload' => $attributesOrPayload];
-            parent::__construct();
-            $this->apply($attributes);
-            return;
-        }
-
-        $attributes = [
-            'payload' => $attributesOrPayload,
-            'envelope' => $envelope,
-            'status'   => $status
-        ];
-
-        if ($this->isAssociative($attributesOrPayload)) {
-            $attributes['custom'] = $attributesOrPayload;
-        }
-
-        parent::__construct($attributes);
-        $this->apply($attributes);
-
+        $this->contentType = $contentType;
     }
 
     public function withStatus($code, $reasonPhrase='')
@@ -112,29 +90,6 @@ class Response extends ImmutableMessage
             return (string)$this->payload;
         }
         return '';
-    }
-
-    protected function apply(array $attributes)
-    {
-        foreach ($attributes as $key=>$value) {
-            if (property_exists($this, $key)) {
-                $this->$key = $value;
-            }
-        }
-    }
-
-    protected function copyStateInto(array &$attributes)
-    {
-        if (!isset($attributes['status'])) {
-            $attributes['status'] = $this->status;
-        }
-        if (!isset($attributes['statusMessage'])) {
-            $attributes['statusMessage'] = $this->statusMessage;
-        }
-        if (!isset($attributes['contentType'])) {
-            $attributes['contentType'] = $this->contentType;
-        }
-        parent::copyStateInto($attributes);
     }
 
 }

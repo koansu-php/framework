@@ -21,9 +21,9 @@ class GenericInput extends Message implements Input
      */
     protected $method = '';
 
-    public function __construct(...$args)
+    public function __construct($payload=[], array $envelope=[], string $transport=Message::TRANSPORT_APP)
     {
-        parent::__construct(...$args);
+        parent::__construct($payload, $envelope, Message::TYPE_INPUT, $transport);
         if (!$this->clientType) {
             $this->clientType = Input::CLIENT_WEB;
         }

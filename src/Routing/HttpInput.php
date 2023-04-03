@@ -17,8 +17,6 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
 
 use function array_key_exists;
-use function array_merge;
-use function func_num_args;
 use function is_array;
 
 /**
@@ -57,37 +55,10 @@ class HttpInput extends HttpRequest implements Input, ServerRequestInterface
      */
     protected $session;
 
-    public function __construct($dataOrUrl=[], array $headers=[], array $query=[], array $body=[], array $cookies=[], array $files=[], array $server=[], array $custom=[])
+    public function __construct(string $method=Input::GET, Url $url=null, array $headers=[], $body='', array $serverParams=[])
     {
-        $dataIsUrl = $dataOrUrl instanceof Url;
-        if ($this->isAssociative($dataOrUrl) && func_num_args() < 3) {
-            parent::__construct($dataIsUrl ? [] : $dataOrUrl, $headers, $dataIsUrl ? $dataOrUrl : null);
-            return;
-        }
-        $attributes = [
-            'envelope'  => $headers,
-            Input::FROM_QUERY => $query,
-            Input::FROM_BODY => $body,
-            Input::FROM_COOKIE => $cookies,
-            Input::FROM_SERVER => $server,
-            Input::FROM_FILES => $files,
-            'custom' => $custom,
-        ];
-
-        if ($dataIsUrl) {
-            $attributes['uri'] = $dataOrUrl;
-            parent::__construct($attributes);
-            return;
-        }
-
-        if (!is_array($dataOrUrl) || !isset($dataOrUrl['uri']) || !isset($dataOrUrl['method'])) {
-            $attributes['payload'] = $dataOrUrl;
-            parent::__construct($attributes);
-            return;
-        }
-        $uri = $attributes['uri'] ?? null;
-        parent::__construct([], $headers, $uri);
-        $this->apply(array_merge($attributes, $dataOrUrl));
+        parent::__construct($method, $url, $headers, $body);
+        $this->request[Input::FROM_SERVER] = $serverParams;
     }
 
     public function get($key, $default = null)
@@ -303,60 +274,6 @@ class HttpInput extends HttpRequest implements Input, ServerRequestInterface
             }
         }
         return $all;
-    }
-
-    protected function apply(array $attributes)
-    {
-        if (isset($attributes[Input::FROM_QUERY])) {
-            $this->request[Input::FROM_QUERY] = $attributes[Input::FROM_QUERY];
-        }
-        if (isset($attributes[Input::FROM_BODY])) {
-            $this->request[Input::FROM_BODY] = $attributes[Input::FROM_BODY];
-        }
-        if (isset($attributes[Input::FROM_COOKIE])) {
-            $this->request[Input::FROM_COOKIE] = $attributes[Input::FROM_COOKIE];
-        }
-        if (isset($attributes[Input::FROM_SERVER])) {
-            $this->request[Input::FROM_SERVER] = $attributes[Input::FROM_SERVER];
-        }
-        if (isset($attributes[Input::FROM_FILES])) {
-            $this->applyFiles($attributes[Input::FROM_FILES]);
-        }
-        if (isset($attributes['session'])) {
-            $this->session = $attributes['session'];
-        }
-
-        $this->applyInputTrait($attributes);
-        parent::apply($attributes);
-    }
-
-    protected function copyStateInto(array &$attributes)
-    {
-        if (!isset($attributes[Input::FROM_QUERY])) {
-            $attributes[Input::FROM_QUERY] = $this->request[Input::FROM_QUERY];
-        }
-        if (!isset($attributes[Input::FROM_BODY])) {
-            $attributes[Input::FROM_BODY] = $this->request[Input::FROM_BODY];
-        }
-        if (!isset($attributes[Input::FROM_COOKIE])) {
-            $attributes[Input::FROM_COOKIE] = $this->request[Input::FROM_COOKIE];
-        }
-        if (!isset($attributes[Input::FROM_SERVER])) {
-            $attributes[Input::FROM_SERVER] = $this->request[Input::FROM_SERVER];
-        }
-        if (!isset($attributes[Input::FROM_FILES])) {
-            $attributes[Input::FROM_FILES] = $this->request[Input::FROM_FILES];
-        }
-        if (!isset($attributes['session'])) {
-            $attributes['session'] = $this->session;
-        }
-        $this->copyInputTraitStateInto($attributes);
-        parent::copyStateInto($attributes);
-    }
-
-    protected function applyFiles(array $files)
-    {
-        $this->request[Input::FROM_FILES] = $this->castFiles($files);
     }
 
     protected function castFiles(array $files) : array

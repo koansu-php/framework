@@ -52,7 +52,7 @@ class HttpInputConnectionTest extends TestCase
         $con->read($handler);
         /** @var HttpInput $input */
         $input = $inputs[0];
-        $this->assertEquals([], $input->payload);
+        $this->assertEquals([], $input->custom);
         $this->assertEquals($request, $input->__toArray());
         $this->assertEquals('https://web-utils.de/test', (string)$input->uri);
     }

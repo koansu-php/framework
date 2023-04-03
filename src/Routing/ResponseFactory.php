@@ -61,17 +61,16 @@ class ResponseFactory implements ResponseFactoryContract, UtilizesInput
      */
     public function create($content): Response
     {
-        $attributes = ['payload' => $content];
-
+        $contentType = 'application/octet-stream';
         if ($content instanceof RenderData && $content->getMimeType()) {
-            $attributes['contentType'] = $content->getMimeType();
+            $contentType = $content->getMimeType();
         }
 
         if ($this->input && $this->input->getClientType() == Input::CLIENT_CONSOLE) {
-            return new Response($attributes);
+            return new Response($content, [], 0, $contentType);
         }
 
-        $response = new HttpResponse($attributes);
+        $response = new HttpResponse($content, [], 200, $contentType);
         $response->provideSerializerBy(function ($contentType) {
             if ($contentType == 'application/json') {
                 return new JsonSerializer();

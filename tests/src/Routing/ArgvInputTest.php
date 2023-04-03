@@ -181,10 +181,11 @@ class ArgvInputTest extends TestCase
             'locale'     => 'de_CH',
             'apiVersion' => '1.1'
         ];
-        $arguments = [
 
-        ];
-        $input = $this->make($args);
+        $input = $this->make($args['argv'])
+            ->withLocale($args['locale'])
+            ->withApiVersion($args['apiVersion'])
+            ->withRouteScope($args['routeScope']);
 
         $this->assertEquals($args['argv'], $input->argv);
         $this->assertEquals($args['routeScope'], $input->routeScope);

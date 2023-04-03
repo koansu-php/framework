@@ -112,32 +112,20 @@ class HttpInputConnection extends AbstractConnection implements InputConnection,
     protected function createInput(array $serverParams=[], string $method='', Url $uri=null) : HttpInput
     {
         $server = $serverParams ?: $this->server;
+        $method = $method ?: $server['REQUEST_METHOD'];
+        $headers = $this->headers ?: $this->guessHeaders();
 
-        $attributes = [
-            Input::FROM_QUERY       => $this->query,
-            Input::FROM_BODY        => $this->body,
-            Input::FROM_COOKIE      => $this->cookies,
-            Input::FROM_SERVER      => $server,
-            Input::FROM_FILES       => $this->files,
-            'uri'                   => $uri ?: $this->createUrl($server),
-            'method'                => $method ?: $server['REQUEST_METHOD'],
-            'headers'               => $this->headers ?: $this->guessHeaders(),
-            'determinedContentType' => 'text/html'
-        ];
-
-        if (in_array($attributes['method'], ['PUT', 'PATCH']) && !$attributes[Input::FROM_BODY]) {
-            $attributes[Input::FROM_BODY] = $this->parseBodyParams($attributes['headers']);
+        if (in_array($method, ['PUT', 'PATCH']) && !$this->body) {
+            $this->body = $this->parseBodyParams($headers);
         }
 
-        return new HttpInput(
-            $attributes,
-            $this->headers ?: $this->guessHeaders(),
-            $this->query,
-            $this->body,
-            $this->cookies,
-            $this->files,
-            $server
-        );
+        return (new HttpInput($method, $uri ?: $this->createUrl($server), $headers, '', $server))
+            ->withQueryParams($this->query)
+            ->withParsedBody($this->body)
+            ->withCookieParams($this->cookies)
+            ->withUploadedFiles($this->files)
+            ->withDeterminedContentType('text/html');
+
     }
 
     protected function parseBodyParams(array $headers) : array

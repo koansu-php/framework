@@ -76,35 +76,11 @@ class HttpResponse extends Response implements ResponseInterface
      */
     protected $secureCookies = true;
 
-    public function __construct($data = [], array $headers=[], int $status=200)
+    public function __construct($data = null, array $headers=[], int $status=200, string $contentType='text/html')
     {
+        parent::__construct($data, $headers, $status, $contentType);
         $this->transport = Message::TRANSPORT_NETWORK;
-        $this->contentType = 'text/html';
-
-        if (!func_num_args()) {
-            parent::__construct();
-            $this->status = $status;
-            return;
-        }
-
-        if (func_num_args() > 1) {
-            parent::__construct($data, $headers, $status);
-            return;
-        }
-
-        $dataIsArray = is_array($data);
-
-        if ($dataIsArray && isset($data['headers'])) {
-            $data['envelope'] = $data['headers'];
-        }
-        parent::__construct($data);
-
-        if ($dataIsArray && !isset($data['status'])) {
-            $this->status = $status;
-        }
-        if ($this->status == 0) {
-            $this->status = 200;
-        }
+        $this->applyEnvelope($headers);
     }
 
     /**
@@ -234,6 +210,11 @@ class HttpResponse extends Response implements ResponseInterface
         parent::offsetUnset($offset);
     }
 
+    public function withRaw($raw) : HttpResponse
+    {
+        return $this->replicate(['raw' => $raw]);
+    }
+
     /**
      * @param string|Cookie $cookie
      * @param string|null   $value
@@ -302,55 +283,6 @@ class HttpResponse extends Response implements ResponseInterface
     {
         $this->serializerFactory = $callable;
     }
-
-    protected function apply(array $attributes)
-    {
-        if (isset($attributes['raw'])) {
-            $this->raw = $attributes['raw'];
-        }
-        if (isset($attributes['protocolVersion'])) {
-            $this->protocolVersion = $attributes['protocolVersion'];
-        }
-        if (isset($attributes['serializerFactory'])) {
-            $this->serializerFactory = $attributes['serializerFactory'];
-        }
-        if (isset($attributes['cookies'])) {
-            $this->cookies = $attributes['cookies'];
-        }
-        if (isset($attributes['secureCookies'])) {
-            $this->secureCookies = $attributes['secureCookies'];
-        }
-        if (!isset($attributes['envelope'])) {
-            parent::apply($attributes);
-            return;
-        }
-
-        if ($this->applyEnvelope($attributes['envelope']) && isset($attributes['status'])) {
-            unset($attributes['status']);
-        }
-        unset($attributes['envelope']);
-
-        parent::apply($attributes);
-    }
-
-    protected function copyStateInto(array &$attributes)
-    {
-        if (!isset($attributes['raw'])) {
-            $attributes['raw'] = $this->raw;
-        }
-        if (!isset($attributes['protocolVersion'])) {
-            $attributes['protocolVersion'] = $this->protocolVersion;
-        }
-        if (!isset($attributes['cookies'])) {
-            $attributes['cookies'] = $this->cookies;
-        }
-        if (!isset($attributes['secureCookies'])) {
-            $attributes['secureCookies'] = $this->secureCookies;
-        }
-        $attributes['serializerFactory'] = $this->serializerFactory;
-        parent::copyStateInto($attributes);
-    }
-
 
     protected function applyEnvelope(array $envelope) : bool
     {
@@ -442,6 +374,11 @@ class HttpResponse extends Response implements ResponseInterface
     protected function tryDeserializePayload()
     {
         if ($this->payloadDeserialized || !$this->payload || $this->custom) {
+            return;
+        }
+        if (strpos($this->contentType, 'text/') === 0) {
+            $this->custom = [];
+            $this->payloadDeserialized = true;
             return;
         }
         if (!$serializer = $this->createSerializer($this->contentType)) {

@@ -36,6 +36,7 @@ class HttpResponseTest extends TestCase
      */
     public function it_applies_all_attributes()
     {
+        $status = 201;
         $attributes = [
             'type'      => Message::TYPE_OUTPUT,
             'transport' => Message::TRANSPORT_NETWORK,
@@ -45,11 +46,20 @@ class HttpResponseTest extends TestCase
             'protocolVersion' => '2.0',
             'raw'       => 'raw_body_content',
         ];
-        $response = $this->response($attributes);
+        $response = $this->response(
+            $attributes['payload'],
+            $attributes['headers'],
+            $status,
+            $attributes['headers']['Content-Type']
+        )->withTransport($attributes['transport'])
+        ->with($attributes['custom'])
+        ->withProtocolVersion($attributes['protocolVersion'])
+        ->withRaw($attributes['raw']);
 
         foreach ($attributes as $key=>$value) {
             $this->assertEquals($value, $response->$key);
         }
+        $this->assertEquals($status, $response->status);
     }
 
     /**
@@ -252,7 +262,7 @@ class HttpResponseTest extends TestCase
      */
     public function test_raw_data()
     {
-        $response = $this->response(['raw' => 'blob']);
+        $response = $this->response()->withRaw('blob');
         $fork = $response->with('foo', 'bar');
         $this->assertNotSame($response, $fork);
         $this->assertEquals('blob', $response->raw);
@@ -294,7 +304,7 @@ class HttpResponseTest extends TestCase
      */
     public function toArray_throws_exception_if_no_serializer_assigned()
     {
-        $response = $this->response(123456);
+        $response = $this->response(123456, [], 200, 'application/json');
         $this->expectException(ConfigurationException::class);
         $response->__toArray();
     }
@@ -313,11 +323,10 @@ class HttpResponseTest extends TestCase
         ];
 
         $json = $serializer->serialize($data);
-        $response = $this->response(['payload' => $json]);
+        $response = $this->response($json, [], 200, 'application/json');
         $response->provideSerializerBy(function () use ($serializer) {
             return $serializer;
         });
-        //print_r($response);
         $this->assertEquals($data, $response->custom);
 
     }
@@ -337,7 +346,7 @@ class HttpResponseTest extends TestCase
 
         $json = $serializer->serialize($data);
 
-        $response = $this->response($json);
+        $response = $this->response($json, [], 200, 'application/json');
         $response->provideSerializerBy(function () use ($serializer) {
             return $serializer;
         });
@@ -360,7 +369,7 @@ class HttpResponseTest extends TestCase
 
         $json = $serializer->serialize($data);
 
-        $response = $this->response($json);
+        $response = $this->response($json, [], 200, 'application/json');
         $response->provideSerializerBy(function () use ($serializer) {
             return $serializer;
         });
@@ -388,7 +397,7 @@ class HttpResponseTest extends TestCase
 
         $json = $serializer->serialize($data);
 
-        $response = $this->response($json);
+        $response = $this->response($json, [], 200, 'application/json');
         $response->provideSerializerBy(function () use ($serializer) {
             return $serializer;
         });
@@ -411,7 +420,7 @@ class HttpResponseTest extends TestCase
 
         $json = $serializer->serialize($data);
 
-        $response = $this->response($json);
+        $response = $this->response($json, [], 200, 'application/json');
         $response->provideSerializerBy(function () use ($serializer) {
             return $serializer;
         });

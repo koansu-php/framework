@@ -61,12 +61,8 @@ class ArgvInput extends ImmutableMessage implements Input
         $this->determinedContentType = 'text/x-ansi';
         $this->url = $url;
 
-        if ($argv === [] || !$this->isAssociative($argv)) {
-            $this->setArgv($argv ?: $_SERVER['argv']);
-            return;
-        }
-        $this->apply($argv);
-    }
+        $this->setArgv($argv ?: $_SERVER['argv']);
+     }
 
     /**
      * @return array
@@ -252,6 +248,10 @@ class ArgvInput extends ImmutableMessage implements Input
         return parent::__get($key);
     }
 
+    public function withApiVersion(string $version) : ArgvInput
+    {
+        return $this->replicate(['apiVersion' => $version]);
+    }
 
     protected function parseIfNotParsed()
     {

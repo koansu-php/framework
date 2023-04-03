@@ -35,7 +35,7 @@ class HttpInputTest extends TestCase
     {
         $data = ['foo' => 'bar'];
         $headers = ['Accept' => '*'];
-        $input = $this->input($data, $headers);
+        $input = $this->input('GET', null, $headers)->with($data);
         $this->assertEquals($data, $input->custom);
         $this->assertEquals($headers, $input->headers);
     }
@@ -45,6 +45,8 @@ class HttpInputTest extends TestCase
      */
     public function apply_all_constructor_args()
     {
+        $method = Input::GET;
+        $url = new Url('http://web-utils.de/files');
         $payload = 'foo';
         $headers = [
             'Accept-Encoding' => 'gzip, deflate, br',
@@ -74,7 +76,13 @@ class HttpInputTest extends TestCase
         $custom = [
             'a' => 'b'
         ];
-        $input = $this->input($payload, $headers, $query, $body, $cookie, $files, $server, $custom);
+        $input = $this->input($method, $url, $headers, $payload, $server)
+            ->withQueryParams($query)
+            ->withCookieParams($cookie)
+            ->with($custom)
+            ->withPayload($payload)
+            ->withParsedBody($body)
+            ->withUploadedFiles($files);
 
         $this->assertEquals($payload, $input->payload);
         $this->assertEquals($payload, (string)$input->body);
@@ -131,7 +139,14 @@ class HttpInputTest extends TestCase
         $custom = [
             'a' => 'b'
         ];
-        $input = $this->input($payload, $headers, $query, $body, $cookie, $files, $server, $custom);
+
+        $input = $this->input('GET', null, $headers, $payload, $server)
+            ->withQueryParams($query)
+            ->withCookieParams($cookie)
+            ->with($custom)
+            ->withPayload($payload)
+            ->withParsedBody($body)
+            ->withUploadedFiles($files);
 
         $this->assertEquals($payload, $input->payload);
         $this->assertEquals($payload, (string)$input->body);
@@ -181,7 +196,14 @@ class HttpInputTest extends TestCase
         $custom = [
             'a' => 'b'
         ];
-        $input = $this->input($payload, $headers, $query, $body, $cookie, $files, $server, $custom);
+
+        $input = $this->input('GET', null, $headers, $payload, $server)
+            ->withQueryParams($query)
+            ->withCookieParams($cookie)
+            ->with($custom)
+            ->withPayload($payload)
+            ->withParsedBody($body)
+            ->withUploadedFiles($files);
 
         $this->assertEquals($payload, $input->payload);
         $this->assertEquals($payload, (string)$input->body);
@@ -231,7 +253,14 @@ class HttpInputTest extends TestCase
         $custom = [
             'a' => 'b'
         ];
-        $input = $this->input($payload, $headers, $query, $body, $cookie, $files, $server, $custom);
+
+        $input = $this->input('GET', null, $headers, $payload, $server)
+            ->withQueryParams($query)
+            ->withCookieParams($cookie)
+            ->with($custom)
+            ->withPayload($payload)
+            ->withParsedBody($body)
+            ->withUploadedFiles($files);
 
         $this->assertEquals($payload, $input->payload);
         $this->assertEquals($payload, (string)$input->body);
@@ -292,7 +321,14 @@ class HttpInputTest extends TestCase
         $custom = [
             'a' => 'b'
         ];
-        $input = $this->input($payload, $headers, $query, $body, $cookie, $files, $server, $custom);
+
+        $input = $this->input('GET', null, $headers, $payload, $server)
+            ->withQueryParams($query)
+            ->withCookieParams($cookie)
+            ->with($custom)
+            ->withPayload($payload)
+            ->withParsedBody($body)
+            ->withUploadedFiles($files);
 
         $this->assertEquals($payload, $input->payload);
         $this->assertEquals($payload, (string)$input->body);
@@ -328,7 +364,7 @@ class HttpInputTest extends TestCase
     public function working_with_attributes()
     {
         $custom = ['foo' => 'bar'];
-        $input = $this->input(['custom' => $custom]);
+        $input = $this->input()->with($custom);
 
         $this->assertEquals($custom, $input->getAttributes());
         $this->assertEquals($custom['foo'], $input->getAttribute('foo'));
@@ -348,7 +384,7 @@ class HttpInputTest extends TestCase
     public function withUrl_changes_url()
     {
         $url = new Url('https://web-utils.de/api/users');
-        $input = $this->input($url);
+        $input = $this->input('GET', $url);
         $this->assertSame($url, $input->uri);
         $this->assertSame($url, $input->url);
         $this->assertSame($url, $input->getUrl());
@@ -378,7 +414,7 @@ class HttpInputTest extends TestCase
     {
         $url = new Url('https://web-utils.de/api/users');
 
-        $input = $this->input(['url' => $url]);
+        $input = $this->input('GET', $url);
         $this->assertSame($url, $input->uri);
         $this->assertSame($url, $input->url);
         $this->assertSame($url, $input->getUrl());
@@ -397,11 +433,9 @@ class HttpInputTest extends TestCase
      */
     public function withClientType_changes_clientType()
     {
-        $attributes = [
-            'clientType' => Input::CLIENT_DESKTOP
-        ];
-        $input = $this->input($attributes);
-        $this->assertEquals($attributes['clientType'], $input->clientType);
+
+        $input = $this->input()->withClientType(Input::CLIENT_DESKTOP);
+        $this->assertEquals(Input::CLIENT_DESKTOP, $input->clientType);
         $fork = $input->withClientType(Input::CLIENT_API);
         $this->assertNotSame($input, $fork);
         $this->assertEquals(Input::CLIENT_API, $fork->clientType);
@@ -415,7 +449,7 @@ class HttpInputTest extends TestCase
         $attributes = [
             'apiVersion' => '1.1'
         ];
-        $input = $this->input($attributes);
+        $input = $this->input()->withApiVersion($attributes['apiVersion']);
         $this->assertEquals($attributes['apiVersion'], $input->apiVersion);
         $fork = $input->withApiVersion('1.2');
         $this->assertNotSame($input, $fork);
@@ -441,7 +475,15 @@ class HttpInputTest extends TestCase
         $custom = [
             'a' => 'b'
         ];
-        $input = $this->input($payload, $headers, $query, $body, $cookie, $files, $server, $custom);
+
+        $input = $this->input('GET', null, $headers, $payload, $server)
+            ->withQueryParams($query)
+            ->withCookieParams($cookie)
+            ->with($custom)
+            ->withPayload($payload)
+            ->withParsedBody($body)
+            ->withUploadedFiles($files);
+
 
         $this->assertEquals('foo', $input->get('get'));
         $this->assertEquals('bar', $input->get('post'));
@@ -467,7 +509,13 @@ class HttpInputTest extends TestCase
         $files = [];
         $server = [];
         $custom = [];
-        $input = $this->input($payload, $headers, $query, $body, $cookie, $files, $server, $custom);
+        $input = $this->input('GET', null, $headers, $payload, $server)
+            ->withQueryParams($query)
+            ->withCookieParams($cookie)
+            ->with($custom)
+            ->withPayload($payload)
+            ->withParsedBody($body)
+            ->withUploadedFiles($files);
 
         $this->assertEquals('a', $input->get('a'));
 
@@ -502,7 +550,13 @@ class HttpInputTest extends TestCase
         $custom = [
             'a' => 'b'
         ];
-        $input = $this->input($payload, $headers, $query, $body, $cookie, $files, $server, $custom);
+        $input = $this->input('GET', null, $headers, $payload, $server)
+            ->withQueryParams($query)
+            ->withCookieParams($cookie)
+            ->with($custom)
+            ->withPayload($payload)
+            ->withParsedBody($body)
+            ->withUploadedFiles($files);
 
         $this->assertTrue(isset($input['get']));
         $this->assertTrue(isset($input['post']));
@@ -531,7 +585,13 @@ class HttpInputTest extends TestCase
         $custom = [
             'a' => 'b'
         ];
-        $input = $this->input($payload, $headers, $query, $body, $cookie, $files, $server, $custom);
+        $input = $this->input('GET', null, $headers, $payload, $server)
+            ->withQueryParams($query)
+            ->withCookieParams($cookie)
+            ->with($custom)
+            ->withPayload($payload)
+            ->withParsedBody($body)
+            ->withUploadedFiles($files);
 
         $array = [];
         foreach ($input as $key=>$value) {
@@ -571,16 +631,14 @@ class HttpInputTest extends TestCase
         $custom = [
             'a' => 'b'
         ];
-        $input = $this->input(
-            $payload,
-            $headers,
-            $query,
-            $body,
-            $cookie,
-            $files,
-            $server,
-            $custom
-        );
+
+        $input = $this->input('GET', null, $headers, $payload, $server)
+            ->withQueryParams($query)
+            ->withCookieParams($cookie)
+            ->with($custom)
+            ->withPayload($payload)
+            ->withParsedBody($body)
+            ->withUploadedFiles($files);
 
         $this->assertEquals(
             $query['get'],

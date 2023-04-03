@@ -27,21 +27,27 @@ class ResponseTest extends TestCase
      */
     public function construct_applies_properties_and_attributes()
     {
+        $status = -1;
         $attributes = [
-            'type' => Message::TYPE_OUTPUT,
+            'type'      => Message::TYPE_OUTPUT,
             'transport' => Message::TRANSPORT_NETWORK,
             'custom'    => ['foo' => 'bar'],
             'envelope'  => ['Content-Type' =>  'application/json'],
             'payload'   => 'blob'
         ];
-        $response = $this->response($attributes);
+        $response = $this->response(
+            $attributes['payload'],
+            $attributes['envelope'],
+            $status,
+            $attributes['envelope']['Content-Type']
+        )->withTransport($attributes['transport'])->with($attributes['custom']);
 
         $this->assertEquals($attributes['type'], $response->type);
         $this->assertEquals($attributes['transport'], $response->transport);
         $this->assertEquals($attributes['custom'], $response->custom);
         $this->assertEquals($attributes['envelope'], $response->envelope);
         $this->assertEquals($attributes['payload'], $response->payload);
-        $this->assertSame(0, $response->status);
+        $this->assertSame($status, $response->status);
         $this->assertSame('', $response->statusMessage);
 
     }
@@ -100,7 +106,7 @@ class ResponseTest extends TestCase
      */
     public function withContentType_changes_contentType()
     {
-        $response = $this->response(['contentType' => 'text/html']);
+        $response = $this->response(null, [], 0, 'text/html');
         $this->assertEquals('text/html', $response->contentType);
 
         $fork = $response->withContentType('application/json');

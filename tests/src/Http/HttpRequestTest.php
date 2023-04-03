@@ -34,8 +34,6 @@ class HttpRequestTest extends TestCase
     {
         $url = 'https://web-utils.de/users/12/blog-entries';
         $attributes = [
-            'type'      => Message::TYPE_OUTPUT,
-            'transport' => Message::TRANSPORT_NETWORK,
             'custom'    => ['foo' => 'bar'],
             'headers'   => ['Content-Type' =>  'application/json'],
             'payload'   => 'raw_body_content',
@@ -45,7 +43,10 @@ class HttpRequestTest extends TestCase
             'uri'           => new Url($url)
         ];
 
-        $request = $this->request($attributes);
+        $request = $this->request($attributes['method'], $attributes['uri'], $attributes['headers'], $attributes['payload'])
+            ->with($attributes['custom'])
+            ->withProtocolVersion($attributes['protocolVersion'])
+            ->withRequestTarget($attributes['requestTarget']);
 
         foreach ($attributes as $key=>$value) {
             $this->assertEquals($value, $request->$key);
@@ -60,7 +61,7 @@ class HttpRequestTest extends TestCase
         $data = ['foo' => 'bar'];
         $headers = ['Content-Type' =>  'application/json'];
 
-        $request = $this->request($data, $headers);
+        $request = $this->request('GET', null, $headers, $data);
         $this->assertEquals($data, $request->payload);
         $this->assertEquals($data, $request->custom);
         $this->assertEquals($headers, $request->headers);
@@ -71,7 +72,7 @@ class HttpRequestTest extends TestCase
      */
     public function it_creates_body()
     {
-        $request = $this->request('blob');
+        $request = $this->request('GET', null, [], 'blob');
 
         $this->assertEquals('blob', $request->payload);
         $body = $request->body;
@@ -88,7 +89,7 @@ class HttpRequestTest extends TestCase
         $request = $this->request('blob');
         $this->assertSame('/', $request->getRequestTarget());
 
-        $request = $this->request(['uri'=>new Url('https://web-utils.de/api/users/12')]);
+        $request = $this->request('GET', new Url('https://web-utils.de/api/users/12'));
         $this->assertSame('/api/users/12', $request->getRequestTarget());
         $fork = $request->withRequestTarget('api/v2/contacts/33');
         $this->assertNotSame($request, $fork);
@@ -101,10 +102,11 @@ class HttpRequestTest extends TestCase
      */
     public function getMethod_returns_method()
     {
-        $request = $this->request('blob');
-        $this->assertSame(Input::GET, $request->method);
+        $method = Input::GET;
+        $request = $this->request($method, null, [], 'blob');
+        $this->assertSame($method, $request->method);
 
-        $request = $this->request(['method' => Input::PUT]);
+        $request = $this->request(Input::PUT);
         $this->assertSame(Input::PUT, $request->method);
         $fork = $request->withMethod(Input::POST);
         $this->assertNotSame($request, $fork);
@@ -117,7 +119,7 @@ class HttpRequestTest extends TestCase
     public function getUri_returns_uri()
     {
         $url = new Url('https://web-utils.de/api/users/12');
-        $request = $this->request(['url' => $url]);
+        $request = $this->request('GET', $url);
         $this->assertSame($url, $request->getUri());
         $this->assertSame($url, $request->uri);
         $this->assertSame($url, $request->url);
