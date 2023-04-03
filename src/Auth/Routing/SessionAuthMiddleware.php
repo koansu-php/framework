@@ -33,10 +33,10 @@ class SessionAuthMiddleware
         if ($input instanceof ArgvInput) {
             try {
                 $user = $this->auth->specialUser(Auth::SYSTEM);
-                return $next($input->withUser($user));
             } catch (Throwable $e) {
-                return $next($input);
+                $user = null;
             }
+            return $next($user ? $input->withUser($user) : $input);
         }
         if (!$input instanceof HttpInput || !isset($input->session[$this->sessionKey])) {
             return $next($input->withUser($this->auth->specialUser(Auth::GUEST)));
