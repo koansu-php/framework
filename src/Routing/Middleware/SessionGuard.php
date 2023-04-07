@@ -77,13 +77,6 @@ class SessionGuard
             throw new UnexpectedValueException('The response to HttpInput should be HttpResponse not ' . get_class($response));
         }
 
-        $sessionData = $newRequest->session ? $newRequest->session->__toArray() : [];
-
-        if (!$sessionData) {
-            $this->handler->destroy($id);
-            return $response;
-        }
-
         $idHasChanged = $newRequest->session->getId() != $id;
 
         if (!$this->hasCookie($input, $this->getCookieName()) || $idHasChanged) {
