@@ -179,7 +179,6 @@ class RoutingExtension extends AppExtension
      * exist.
      *
      * @return RouteRegistry
-     * @noinspection PhpIncompatibleReturnTypeInspection
      */
     protected function createRegistry() : RouteRegistry
     {
@@ -262,9 +261,6 @@ class RoutingExtension extends AppExtension
     protected function addMiddleware(MiddlewareCollectionContract $collection) : void
     {
         $hash = spl_object_hash($collection);
-        if (isset($this->knownCollections[$hash])) {
-            //return;
-        }
         $this->knownCollections[$hash] = true;
         $this->addClientTypeMiddleware($collection);
         $this->addRouteScopeMiddleware($collection);
@@ -283,9 +279,6 @@ class RoutingExtension extends AppExtension
                 return $next($input);
             }
 
-            if (php_sapi_name() == 'cli') {
-                //return $next($input->withClientType(Input::CLIENT_CONSOLE));
-            }
             if (!$url = $input->getUrl()) {
                 return $next($input->withClientType(Input::CLIENT_WEB));
             }

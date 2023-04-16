@@ -152,6 +152,7 @@ class RoutedInputHandler implements InputHandlerContract, SupportsCustomFactory,
             });
             $this->_customFactory->bind(UrlGeneratorContract::class, function () use ($input) {
                 /** @var UrlGenerator $urls */
+                /** @noinspection PhpUndefinedMethodInspection */
                 $urls = $this->_customFactory->create(UrlGenerator::class);
                 return $urls->withInput($input);
             });

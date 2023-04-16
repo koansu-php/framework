@@ -13,6 +13,7 @@ use Koansu\Routing\Middleware\SessionGuard;
 use Koansu\Routing\Session;
 use Koansu\Routing\SessionHandler\ArraySessionHandler;
 use Koansu\Tests\TestCase;
+use Mockery\MockInterface;
 use SessionHandlerInterface;
 
 use function serialize;
@@ -120,6 +121,7 @@ class SessionGuardTest extends TestCase
      **/
     public function it_does_not_destroy_session_if_session_not_empty()
     {
+        /** @var MockInterface|SessionHandlerInterface $handler */
         $handler = $this->mock(SessionHandlerInterface::class);
         $guard = $this->guard($handler);
         $id = 'abcdefghijklmnopqrstuvw';

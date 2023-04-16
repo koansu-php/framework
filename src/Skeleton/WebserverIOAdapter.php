@@ -277,6 +277,7 @@ class WebserverIOAdapter extends AbstractConnection implements IOAdapter, Server
         }
         $url = $uri ?: $this->parser->guessUrl($server, $headers);
 
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return (new HttpInput($method, $url, $headers, '', $server))
             ->withQueryParams($this->query)
             ->withParsedBody($this->body)

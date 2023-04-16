@@ -6,13 +6,11 @@
 namespace Koansu\Auth\Routing;
 
 use Koansu\Auth\Contracts\Auth;
-use Koansu\Routing\Contracts\Input;
-use Koansu\Routing\Session;
 use Koansu\Routing\ConsoleInput;
+use Koansu\Routing\Contracts\Input;
 use Koansu\Routing\HttpInput;
+use Koansu\Routing\Session;
 use Throwable;
-
-use function print_r;
 
 class SessionAuthMiddleware
 {
@@ -37,7 +35,7 @@ class SessionAuthMiddleware
             return $next($input->withUser($this->auth->specialUser(Auth::GUEST)));
         }
         $user = $this->auth->userByCredentials($input->session[$this->sessionKey]);
-        return $next($input->withUser($user));
+        return $user ? $next($input->withUser($user)) : $next($input);
     }
 
     protected function tryToAssignSystemUser(Input $input) : Input

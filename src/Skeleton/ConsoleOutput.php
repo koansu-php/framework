@@ -47,7 +47,7 @@ class ConsoleOutput extends AbstractConnection
      * @param bool   $formatted (optional)
      * @param string $newLine (default: PHP_EOL)
      */
-    public function line(string $output, bool $formatted=null, string $newLine=PHP_EOL)
+    public function line(string $output, bool $formatted=null, string $newLine=PHP_EOL) : void
     {
         $formatted = is_bool($formatted) ? $formatted : $this->shouldFormatOutput();
         $output = $formatted ? $this->renderer->format($output) : $this->renderer->plain($output);
@@ -73,6 +73,7 @@ class ConsoleOutput extends AbstractConnection
      * @param $output
      * @param bool $lock
      * @return bool
+     * @noinspection PhpUnusedParameterInspection
      */
     public function write($output, bool $lock = false) : bool
     {
@@ -96,7 +97,6 @@ class ConsoleOutput extends AbstractConnection
     /**
      * @param Url $url
      * @return false|object|resource
-     * @noinspection PhpMissingReturnTypeInspection
      */
     protected function createResource(Url $url)
     {
