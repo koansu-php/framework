@@ -113,7 +113,7 @@ class VisibilityTester
      * @param $value
      * @return $this
      */
-    public function setProtected($value): static
+    public function setProtected($value): self
     {
         $this->protected = $value;
         return $this;
@@ -124,7 +124,7 @@ class VisibilityTester
         return $this->private;
     }
 
-    public function setPrivate($value): static
+    public function setPrivate($value): self
     {
         $this->private = $value;
         return $this;

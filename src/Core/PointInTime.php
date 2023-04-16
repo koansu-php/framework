@@ -262,7 +262,8 @@ class PointInTime extends DateTime
      *
      * @return PointInTime
      */
-    public static function createFromFormat(string $format, string $datetime, DateTimeZone $timezone = null) : PointInTime
+    #[\ReturnTypeWillChange]
+    public static function createFromFormat($format, $datetime, DateTimeZone $timezone = null)
     {
         $timezone = $timezone ?: new DateTimeZone(date_default_timezone_get());
         if (!$other = DateTime::createFromFormat($format, $datetime, $timezone)) {

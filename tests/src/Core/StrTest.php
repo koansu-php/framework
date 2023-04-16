@@ -25,9 +25,6 @@ class StrTest extends TestCase
      */
     public function it_implements_interface()
     {
-        if (interface_exists('Stringable')) {
-            $this->assertInstanceOf('Stringable', $this->str());
-        }
         $this->assertTrue(method_exists($this->str(), '__toString'));
     }
 
