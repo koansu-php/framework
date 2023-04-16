@@ -9,14 +9,13 @@ use Koansu\Console\AnsiRenderer;
 use Koansu\Core\AbstractConnection;
 use Koansu\Core\Response;
 use Koansu\Core\Url;
-use Koansu\Skeleton\Contracts\OutputConnection;
 
 use function fwrite;
 use function is_bool;
 
 use const PHP_EOL;
 
-class ConsoleOutputConnection extends AbstractConnection implements OutputConnection
+class ConsoleOutput extends AbstractConnection
 {
 
     /**
@@ -63,6 +62,11 @@ class ConsoleOutputConnection extends AbstractConnection implements OutputConnec
     public function shouldFormatOutput() : bool
     {
         return $this->formattedOutput;
+    }
+
+    public function __invoke($output, bool $lock = false) : void
+    {
+        $this->write($output, $lock);
     }
 
     /**

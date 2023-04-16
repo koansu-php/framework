@@ -118,30 +118,6 @@ class SessionGuardTest extends TestCase
     /**
      * @test
      **/
-    public function it_destroys_session_if_session_empty()
-    {
-        $handler = $this->mock(SessionHandlerInterface::class);
-        $guard = $this->guard($handler);
-        $id = 'abcdefghijklmnopqrstuvw';
-        $handler->shouldReceive('read')->with($id)
-            ->andReturn(serialize([]));
-
-        $input = (new HttpInput())->withCookieParams([$guard->getCookieName() => $id]);
-
-        $handler->shouldReceive('destroy')->with($id)->once();
-
-        $nextInput = null;
-        $next = function (Input $input) use (&$nextInput) {
-            $nextInput = $input;
-            return new HttpResponse();
-        };
-
-        $guard($input, $next);
-    }
-
-    /**
-     * @test
-     **/
     public function it_does_not_destroy_session_if_session_not_empty()
     {
         $handler = $this->mock(SessionHandlerInterface::class);

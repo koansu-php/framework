@@ -7,7 +7,7 @@ namespace Koansu\Tests\Routing;
 
 use Koansu\Core\Message;
 use Koansu\Core\Url;
-use Koansu\Routing\ArgvInput;
+use Koansu\Routing\ConsoleInput;
 use Koansu\Routing\Command;
 use Koansu\Routing\Contracts\Input;
 use Koansu\Routing\Route;
@@ -15,14 +15,14 @@ use Koansu\Tests\TestCase;
 
 use function get_class;
 
-class ArgvInputTest extends TestCase
+class ConsoleInputTest extends TestCase
 {
     /**
      * @test
      */
     public function it_implements_interface()
     {
-        $this->assertInstanceOf(ArgvInput::class, $this->make());
+        $this->assertInstanceOf(ConsoleInput::class, $this->make());
     }
 
     /**
@@ -206,7 +206,7 @@ class ArgvInputTest extends TestCase
         $route = new Route('GET', 'users', '');
         $route->command($command);
 
-        /** @var ArgvInput $routed */
+        /** @var ConsoleInput $routed */
         $handler = function () {};
         $routeParameters = [3];
         $routed = $input->makeRouted($route, $handler, $routeParameters);
@@ -265,10 +265,10 @@ class ArgvInputTest extends TestCase
 
     /**
      * @param array $argv
-     * @return ArgvInput
+     * @return ConsoleInput
      */
-    public function make(array $argv=[]) : ArgvInput
+    public function make(array $argv=[]) : ConsoleInput
     {
-        return new ArgvInput($argv);
+        return new ConsoleInput($argv);
     }
 }

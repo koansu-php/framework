@@ -113,7 +113,7 @@ class RouteHit implements Arrayable, ArrayAccess
      * @noinspection PhpMissingReturnTypeInspection
      */
     #[\ReturnTypeWillChange]
-    public function offsetGet(mixed $offset)
+    public function offsetGet($offset)
     {
         if (isset($this->_properties['parameters'][$offset])) {
             return $this->_properties['parameters'][$offset];

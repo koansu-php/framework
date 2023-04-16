@@ -10,7 +10,7 @@ use Koansu\Core\Contracts\Extendable;
 use Koansu\Core\ImmutableMessage;
 use Koansu\Core\Type;
 use Koansu\Http\HttpResponse;
-use Koansu\Routing\ArgvInput;
+use Koansu\Routing\ConsoleInput;
 use Koansu\Routing\Exceptions\HttpStatusException;
 use Koansu\Routing\Exceptions\RouteNotFoundException;
 use Koansu\Routing\Contracts\Input;
@@ -25,6 +25,7 @@ use Throwable;
 
 use function call_user_func;
 use function error_get_last;
+use function error_log;
 use function error_reporting;
 use function get_class;
 use function in_array;
@@ -360,27 +361,25 @@ class ErrorHandler implements Extendable
 
     protected function scrapeInput() : Input
     {
-        if ($input = $this->app->currentInput()) {
-            return $input;
+        if (php_sapi_name() == 'cli') {
+            return new ConsoleInput();
         }
-        /** @var IO $io */
-        $io = $this->app->get(IO::class);
-        try {
-            return $io->in()->read();
-        } catch (Throwable $e) {
-            if (php_sapi_name() == 'cli') {
-                return new ArgvInput();
-            }
-            return new HttpInput();
-        }
-
+        return new HttpInput();
     }
 
-    protected function log(string $level, string $message, $context=[])
+    protected function log(string $level, string $message, $context=[]) : void
     {
-        if (!$this->logger) {
-            $this->logger = $this->app->get(LoggerInterface::class);
+        if ($this->logger) {
+            $this->logger->log($level, $message, $context);
+            return;
         }
-        $this->logger->log($level, $message, $context);
+        try {
+            $this->logger = $this->app->get(LoggerInterface::class);
+            $this->logger->log($level, $message, $context);
+            return;
+        } catch (Throwable $e) {
+            error_log($message);
+        }
+
     }
 }

@@ -8,7 +8,7 @@ namespace Koansu\Auth\Routing;
 use Koansu\Auth\Contracts\Auth;
 use Koansu\Routing\Contracts\Input;
 use Koansu\Routing\Session;
-use Koansu\Routing\ArgvInput;
+use Koansu\Routing\ConsoleInput;
 use Koansu\Routing\HttpInput;
 use Throwable;
 
@@ -30,7 +30,7 @@ class SessionAuthMiddleware
 
     public function __invoke(Input $input, callable $next)
     {
-        if ($input instanceof ArgvInput) {
+        if ($input instanceof ConsoleInput) {
             return $next($this->tryToAssignSystemUser($input));
         }
         if (!$input instanceof HttpInput || !isset($input->session[$this->sessionKey])) {

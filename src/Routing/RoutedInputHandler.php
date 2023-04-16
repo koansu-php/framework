@@ -169,8 +169,8 @@ class RoutedInputHandler implements InputHandlerContract, SupportsCustomFactory,
             $handler->bind(HttpInput::class, $input);
         }
 
-        if ($input instanceof ArgvInput) {
-            $handler->bind(ArgvInput::class, $input);
+        if ($input instanceof ConsoleInput) {
+            $handler->bind(ConsoleInput::class, $input);
         }
 
         if (!$handler->isInstanceMethod() || !$controller = $handler->getCallInstance()) {

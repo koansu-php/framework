@@ -11,7 +11,7 @@ use Koansu\Core\Type;
 use Koansu\Routing\Contracts\Router;
 use Koansu\Routing\Contracts\RouteRegistry;
 use Koansu\Routing\CompilableRouter;
-use Koansu\Skeleton\ConsoleOutputConnection;
+use Koansu\Skeleton\ConsoleOutput;
 
 use TypeError;
 
@@ -24,7 +24,7 @@ class RouteCompileController
      */
     private $storage;
 
-    public function compile(RouteRegistry $registry, Router $router, ConsoleOutputConnection $out) : int
+    public function compile(RouteRegistry $registry, Router $router, ConsoleOutput $out) : int
     {
         $storageClass = Type::short($this->storage);
         $message = "Compiling routes into cache stored by <comment>$storageClass</comment>";
@@ -53,10 +53,10 @@ class RouteCompileController
     /**
      * Show some status information about the cache.
      *
-     * @param ConsoleOutputConnection $out
+     * @param ConsoleOutput $out
      * @return int
      */
-    public function status(ConsoleOutputConnection $out) : int
+    public function status(ConsoleOutput $out) : int
     {
         $storageClass = Type::short($this->storage);
         $message = "Checking route cache stored by <comment>$storageClass</comment>";
@@ -76,7 +76,7 @@ class RouteCompileController
         return 0;
     }
 
-    public function clear(ConsoleOutputConnection $out) : int
+    public function clear(ConsoleOutput $out) : int
     {
         $storageClass = Type::short($this->storage);
         $message = "Delete route cache stored by $storageClass";

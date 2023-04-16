@@ -17,7 +17,13 @@ use Koansu\Routing\Contracts\Input;
 use Koansu\Routing\Exceptions\MissingRequiredArgumentException;
 use LogicException;
 
+use function fclose;
+use function fgets;
+use function fopen;
+use function in_array;
 use function is_array;
+use function strtolower;
+use function trim;
 
 /**
  * @property-read array         argv
@@ -34,7 +40,7 @@ use function is_array;
  * @property-read string        determinedContentType
  * @property-read string        apiVersion
  */
-class ArgvInput extends ImmutableMessage implements Input
+class ConsoleInput extends ImmutableMessage implements Input
 {
     use InputTrait;
 
@@ -49,6 +55,7 @@ class ArgvInput extends ImmutableMessage implements Input
     private $argv;
 
     private $arguments = [];
+
     private $options = [];
 
     private $parsed = false;
@@ -74,9 +81,9 @@ class ArgvInput extends ImmutableMessage implements Input
 
     /**
      * @param array $argv
-     * @return ArgvInput
+     * @return ConsoleInput
      */
-    public function setArgv(array $argv) : ArgvInput
+    public function setArgv(array $argv) : ConsoleInput
     {
         $this->argv = $argv;
         $this->parsed = false;
@@ -128,7 +135,7 @@ class ArgvInput extends ImmutableMessage implements Input
         }
 
         if ($from !== Message::POOL_ARGV) {
-            throw new InvalidArgumentException("ArgvInput only gets parameters from custom and argv, not $from");
+            throw new InvalidArgumentException("ConsoleInput only gets parameters from custom and argv, not $from");
         }
 
         if (!$this->matchedRoute) {
@@ -248,10 +255,37 @@ class ArgvInput extends ImmutableMessage implements Input
         return parent::__get($key);
     }
 
-    public function withApiVersion(string $version) : ArgvInput
+    /**
+     * Get something from terminal.
+     *
+     * @return string
+     */
+    public function interact(): string
+    {
+        $handle = fopen('php://stdin', 'r');
+        $input = trim(fgets($handle));
+        fclose($handle);
+        return $input;
+    }
+
+    /**
+     * Return true if the user typed one of the passed values.
+     *
+     * @param string[] $yes
+     *
+     * @return bool
+     */
+    public function confirm(iterable $yes=['y','yes','1','true']) : bool
+    {
+        $input = $this->interact();
+        return in_array(strtolower($input), $yes);
+    }
+
+    public function withApiVersion(string $version) : ConsoleInput
     {
         return $this->replicate(['apiVersion' => $version]);
     }
+
 
     protected function parseIfNotParsed()
     {

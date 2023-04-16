@@ -10,6 +10,7 @@ use Koansu\Routing\Contracts\ResponseFactory;
 use Koansu\Core\Response;
 use Koansu\Routing\RouteSearch;
 
+use Koansu\Skeleton\Log;
 use UnexpectedValueException;
 
 use function array_keys;
@@ -45,10 +46,9 @@ class RoutesController
     public function index(Input $input, RouteSearch $search, ResponseFactory $responseFactory) : Response
     {
         $search->apply(iterator_to_array($input));
-
+        Log::info('Hello');
         $keys = $this->getKeys(isset($input['columns']) && $input['columns'] ? $input['columns'] : $this->defaultColumns);
         $search->setKeys($keys);
-
         return $responseFactory->template('routes.index', [
             'routes'    => $search,
             'keys'      => $search->keys()

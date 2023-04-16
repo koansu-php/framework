@@ -7,20 +7,15 @@ namespace Koansu\View\Skeleton;
 
 use Koansu\Console\AnsiRenderer;
 use Koansu\Core\RenderData;
-use Koansu\Routing\ArgvInput;
+use Koansu\Routing\ConsoleInput;
 use Koansu\Routing\Contracts\Input;
 use Koansu\Routing\Contracts\MiddlewareCollection;
 use Koansu\Skeleton\AppExtension;
-use Koansu\Skeleton\IO;
 use Koansu\View\PhpRenderer;
 use Koansu\View\RendererMiddleware;
-
 use Koansu\View\TemplateFinder;
 
-use function func_num_args;
-use function gettype;
 use function ltrim;
-use function spl_object_id;
 
 class ViewExtension extends AppExtension
 {
@@ -43,7 +38,7 @@ class ViewExtension extends AppExtension
     {
 
         $factory->extend('console-view-renderer', function (Input $input, RenderData $renderData=null) {
-            if (!$input instanceof ArgvInput || !$renderData) {
+            if (!$input instanceof ConsoleInput || !$renderData) {
                 return null;
             }
             return $this->createConsoleRenderer($input, $renderData);

@@ -12,8 +12,8 @@ use Koansu\Routing\Exceptions\RouteNotFoundException;
 use Koansu\Routing\Contracts\Input;
 use Koansu\Routing\Route;
 use Koansu\Routing\Contracts\RouteRegistry;
-use Koansu\Routing\ArgvInput;
-use Koansu\Skeleton\ConsoleOutputConnection;
+use Koansu\Routing\ConsoleInput;
+use Koansu\Skeleton\ConsoleOutput;
 
 use function fnmatch;
 use function implode;
@@ -31,12 +31,12 @@ class ConsoleCommandsController
      *
      * @param Input $input
      * @param RouteRegistry $registry
-     * @param ConsoleOutputConnection $out
+     * @param ConsoleOutput $out
      */
     public function index(
         Input $input,
         RouteRegistry $registry,
-        ConsoleOutputConnection $out
+        ConsoleOutput $out
     ) : void {
         $commands = $this->getConsoleCommands($registry);
         $maxLength = $this->longestCommandLength($commands);
@@ -59,15 +59,15 @@ class ConsoleCommandsController
     /**
      * Show help for a single command.
      *
-     * @param ArgvInput $input
+     * @param ConsoleInput $input
      * @param RouteRegistry $registry
-     * @param ConsoleOutputConnection $out
+     * @param ConsoleOutput $out
      * @param AnsiRenderer $renderer
      */
     public function show(
-        ArgvInput $input,
+        ConsoleInput $input,
         RouteRegistry $registry,
-        ConsoleOutputConnection $out,
+        ConsoleOutput $out,
         AnsiRenderer $renderer
     ) : void {
         $command = $input->argument('command_name');
@@ -188,12 +188,12 @@ class ConsoleCommandsController
 
     /**
      * @param Command $command
-     * @param ConsoleOutputConnection $out
+     * @param ConsoleOutput $out
      * @param string $indent
      */
     protected function printArgumentHelp(
         Command $command,
-        ConsoleOutputConnection $out,
+        ConsoleOutput $out,
         string $indent
     ) : void {
         $out->line('');
@@ -217,12 +217,12 @@ class ConsoleCommandsController
 
     /**
      * @param Command $command
-     * @param ConsoleOutputConnection $out
+     * @param ConsoleOutput $out
      * @param string $indent
      */
     protected function printOptionHelp(
         Command $command,
-        ConsoleOutputConnection $out,
+        ConsoleOutput $out,
         string $indent
     ) : void {
         $out->line('');

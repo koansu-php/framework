@@ -5,12 +5,16 @@
 
 namespace Koansu\Tests\Skeleton;
 
-use Koansu\Tests\TestCase;
-use Koansu\Http\Cookie;
-use Koansu\Skeleton\Contracts\OutputConnection;
 use Koansu\Core\Response;
-use Koansu\Skeleton\HttpOutputConnection;
+use Koansu\Http\Cookie;
 use Koansu\Http\HttpResponse;
+use Koansu\Routing\Contracts\Input;
+use Koansu\Routing\HttpInput;
+use Koansu\Skeleton\Contracts\IOAdapter;
+use Koansu\Skeleton\WebserverIOAdapter;
+use Koansu\Tests\TestCase;
+
+use Psr\Http\Message\UriInterface;
 
 use function ob_end_clean;
 use function ob_get_contents;
@@ -18,7 +22,7 @@ use function ob_start;
 use function strpos;
 use function substr;
 
-class HttpOutputConnectionTest extends TestCase
+class WebserverIOAdapterTest extends TestCase
 {
 
     /**
@@ -26,7 +30,7 @@ class HttpOutputConnectionTest extends TestCase
      */
     public function it_implements_interface()
     {
-        $this->assertInstanceOf(OutputConnection::class, $this->make());
+        $this->assertInstanceOf(IOAdapter::class, $this->make());
     }
 
     /**
@@ -47,12 +51,15 @@ class HttpOutputConnectionTest extends TestCase
      */
     public function write_string()
     {
-        $con = $this->make();
+        $con = $this->make([], [], ['host' => 'example.com']);
         ob_start();
-        $con->write('Hello');
+        $test = 'Hello';
+        $con(function (Input $input, callable $output) use ($test) {
+            return $output($test);
+        });
         $string = ob_get_contents();
         ob_end_clean();
-        $this->assertEquals('Hello', $string);
+        $this->assertEquals($test, $string);
     }
 
     /**
@@ -60,7 +67,7 @@ class HttpOutputConnectionTest extends TestCase
      */
     public function write_http_response()
     {
-        $con = $this->make();
+        $con = $this->make([], [], ['host' => 'example.com']);
         ob_start();
 
         $headers = [];
@@ -76,7 +83,10 @@ class HttpOutputConnectionTest extends TestCase
 
         $con->fakeSentHeaders(false);
 
-        $con->write($response);
+        $con(function (Input $input, callable $output) use ($response) {
+            return $output($response);
+        });
+
         $string = ob_get_contents();
         ob_end_clean();
         $this->assertEquals('Hello', $string);
@@ -94,7 +104,7 @@ class HttpOutputConnectionTest extends TestCase
      */
     public function write_http_response_with_sent_headers()
     {
-        $con = $this->make();
+        $con = $this->make([], [], ['host' => 'example.com']);
         ob_start();
 
         $headers = [];
@@ -110,7 +120,10 @@ class HttpOutputConnectionTest extends TestCase
 
         $con->fakeSentHeaders(true);
 
-        $con->write($response);
+        $con(function (Input $input, callable $output) use ($response) {
+            return $output($response);
+        });
+
         $string = ob_get_contents();
         ob_end_clean();
         $this->assertEquals('Hello', $string);
@@ -123,8 +136,9 @@ class HttpOutputConnectionTest extends TestCase
     public function write_status_line_without_phrase()
     {
         $headers = [
-            'Content-Type' => 'application/json',
-            'Content-Encoding' => 'gzip'
+            'Host'              => 'example.com',
+            'Content-Type'      => 'application/json',
+            'Content-Encoding'  => 'gzip'
         ];
         $response = new HttpResponse('Nothing is here', $headers, 404);
 
@@ -210,9 +224,64 @@ class HttpOutputConnectionTest extends TestCase
         $this->assertEquals("$response", $body);
     }
 
+    /**
+     * @test
+     */
+    public function isInteractive_returns_false()
+    {
+        $this->assertFalse($this->make()->isInteractive());
+    }
+
+    /**
+     * @test
+     */
+    public function read_reads_input_into_handler()
+    {
+        $request = ['foo' => 'bar'];
+        $con = $this->make($request, [
+            'SERVER_PORT'   => 443,
+            'REQUEST_URI'   => 'test',
+            'REQUEST_METHOD'=> 'GET'
+        ], ['Host' => 'web-utils.de']);
+
+        $inputs = [];
+
+        $handler = function (Input $input) use (&$inputs) {
+            $inputs[] = $input;
+        };
+
+        $con->read($handler);
+        /** @var HttpInput $input */
+        $input = $inputs[0];
+        $this->assertEquals([], $input->custom);
+        $this->assertEquals($request, $input->__toArray());
+        $this->assertEquals('https://web-utils.de/test', (string)$input->uri);
+    }
+
+    /**
+     * @test
+     */
+    public function createServerRequest_is_valid()
+    {
+        $request = ['foo' => 'bar'];
+        $server = [
+            'SERVER_PORT'   => 443,
+            'DOCUMENT_ROOT' => '/dev/null'
+        ];
+        $url = 'https://web-utils.de/test';
+        $con = $this->make($request);
+
+        $request = $con->createServerRequest('POST', $url, $server);
+        $this->assertEquals('POST', $request->getMethod());
+        $this->assertEquals($url, (string)$request->getUri());
+        $this->assertInstanceOf(UriInterface::class, $request->getUri());
+        $this->assertEquals($server, $request->getServerParams());
+
+    }
+
     protected function render(Response $response)
     {
-        $con = $this->make();
+        $con = $this->make([], [], ['host' => 'example.com']);
         ob_start();
 
         $headers = [];
@@ -223,7 +292,9 @@ class HttpOutputConnectionTest extends TestCase
         $con->outputHeaderBy($headerPrinter);
         $con->fakeSentHeaders(false);
 
-        $con->write($response);
+        $con(function (Input $input, callable $output) use ($response) {
+            return $output($response);
+        });
         $string = ob_get_contents();
         ob_end_clean();
         return [$headers, $string];
@@ -243,8 +314,8 @@ class HttpOutputConnectionTest extends TestCase
         return $cookieHeaders;
     }
 
-    protected function make() : HttpOutputConnection
+    protected function make(array $query=[], array $server=[], array $headers=[]) : WebserverIOAdapter
     {
-        return new HttpOutputConnection();
+        return new WebserverIOAdapter($query, $server, $headers);
     }
 }

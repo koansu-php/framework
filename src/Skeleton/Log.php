@@ -191,7 +191,7 @@ class Log
     private static function defaultLogger() : Closure
     {
         return function ($level, $message, array $context=[]) {
-            IO::instance()->logger()->log($level, $message, $context);
+            error_log("$level: $message");
         };
     }
 }

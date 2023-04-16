@@ -46,9 +46,13 @@ use SessionHandlerInterface;
 use UnexpectedValueException;
 
 use function call_user_func;
+use function get_class;
 use function method_exists;
+use function php_sapi_name;
 use function spl_object_hash;
 use function ucwords;
+
+use const PHP_SAPI;
 
 
 class RoutingExtension extends AppExtension
@@ -280,7 +284,7 @@ class RoutingExtension extends AppExtension
             }
 
             if (php_sapi_name() == 'cli') {
-                return $next($input->withClientType(Input::CLIENT_CONSOLE));
+                //return $next($input->withClientType(Input::CLIENT_CONSOLE));
             }
             if (!$url = $input->getUrl()) {
                 return $next($input->withClientType(Input::CLIENT_WEB));

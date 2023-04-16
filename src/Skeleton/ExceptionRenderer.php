@@ -10,7 +10,7 @@ use Koansu\Core\Type;
 use Koansu\Routing\Contracts\Input;
 use Koansu\Core\Response;
 use Koansu\Http\HttpResponse;
-use Koansu\Routing\ArgvInput;
+use Koansu\Routing\ConsoleInput;
 use Throwable;
 
 use function array_keys;
@@ -28,7 +28,7 @@ class ExceptionRenderer
 {
     public function __invoke(Throwable $e, Input $input) : Response
     {
-        if ($input instanceof ArgvInput) {
+        if ($input instanceof ConsoleInput) {
             return $this->createConsoleExceptionResponse($e, $input);
         }
         return $this->createHttpResponse($e, $input);
@@ -42,7 +42,7 @@ class ExceptionRenderer
     protected function createConsoleExceptionResponse(Throwable $e, Input $input) : Response
     {
         $string = 'Unsupported input class for console: ' . get_class($input);
-        if ($input instanceof ArgvInput) {
+        if ($input instanceof ConsoleInput) {
             $string = $this->renderConsoleException($e, $input);
         }
         return new Response($string, [], 1, AnsiRenderer::LINE_CONTENT_TYPE);
@@ -50,10 +50,10 @@ class ExceptionRenderer
 
     /**
      * @param Throwable $e
-     * @param ArgvInput $input
+     * @param ConsoleInput $input
      * @return string
      */
-    protected function renderConsoleException(Throwable $e, ArgvInput $input) : string
+    protected function renderConsoleException(Throwable $e, ConsoleInput $input) : string
     {
         $lines = [];
         $this->renderConsoleExceptionLines($e, $input->wantsVerboseOutput(), $lines);
@@ -67,7 +67,12 @@ class ExceptionRenderer
      */
     protected function renderConsoleExceptionLines(Throwable $e, bool $verbose, array &$lines) : void
     {
-        $lines[] = '<error>' . $e->getMessage() . '</error>';
+        $intro = [];
+        if ($message = trim($e->getMessage())) {
+            $intro[] = " $message ";
+        }
+        $intro[] = ' ' . trim(Type::short(get_class($e)) . ' in ' . $e->getFile() . ':' . $e->getLine()) . ' ';
+        $lines[] = '<error>' . implode("\n", $intro) . '</error>';
         if(!$verbose) {
             return;
         }

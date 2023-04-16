@@ -8,16 +8,9 @@ namespace Koansu\Skeleton;
 use InvalidArgumentException;
 use Koansu\Config\Config;
 use Koansu\Config\Env;
-
 use Koansu\Config\Processors\ConfigVariablesParser;
-
 use Koansu\Config\Readers\IniFileReader;
-
 use Koansu\Core\Contracts\SupportsCustomFactory;
-use Koansu\Skeleton\Contracts\InputConnection;
-
-use Koansu\Skeleton\Contracts\OutputConnection;
-
 use Psr\Log\LoggerInterface;
 
 use function array_key_exists;
@@ -63,7 +56,17 @@ class SkeletonExtension extends AppExtension
             $this->loadEnvFileIfExists($this->envPath);
             return;
         }
+
         $this->app->setConfig($this->createConfig($this->configPaths, $this->envPath));
+
+        $this->app->share(LoggerInterface::class, function () {
+            $logConfig = $this->app->config('logging') ?: [];
+            return $this->createLogger($logConfig);
+        });
+
+        Log::setLogger(function ($level, $message, array $context=[]) {
+            $this->app->get(LoggerInterface::class)->log($level, $message, $context);
+        });
 
     }
 
@@ -72,9 +75,6 @@ class SkeletonExtension extends AppExtension
         $this->app->on(SupportsCustomFactory::class, function (SupportsCustomFactory $object) {
             $object->createObjectsBy($this->app);
         });
-
-        $this->bindInputOutput();
-
     }
 
     /**
@@ -120,32 +120,6 @@ class SkeletonExtension extends AppExtension
             $this->freezeConfig();
         });
         parent::install($app);
-    }
-
-    protected function bindInputOutput()
-    {
-        /** @var IO $io */
-        $io = $this->app->create(IO::class);
-        $this->app->instance(IO::class, $io);
-
-        if ($config = $this->app->config('logging')) {
-            $io->extend('default-logger', function ($channel) use ($config) {
-                if ($channel == 'log') {
-                    return $this->createLogger($config);
-                }
-            });
-        }
-
-        $this->app->bind(InputConnection::class, function () use ($io) {
-            return $io->in();
-        });
-        $this->app->bind(OutputConnection::class, function () use ($io) {
-            return $io->out();
-        });
-        $this->app->bind(LoggerInterface::class, function () use ($io) {
-            return $io->logger();
-        });
-
     }
 
     protected function applyEnv() : void

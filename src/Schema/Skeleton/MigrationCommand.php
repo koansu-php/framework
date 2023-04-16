@@ -6,16 +6,13 @@
 namespace Koansu\Schema\Skeleton;
 
 use Koansu\Core\Contracts\HasMethodHooks;
+use Koansu\Routing\ConsoleInput;
 use Koansu\Routing\Contracts\Input;
+use Koansu\Routing\Contracts\UtilizesInput;
 use Koansu\Schema\Contracts\Migrator;
-
 use Koansu\Schema\Exceptions\MigratorInstallationException;
 use Koansu\Schema\MigrationStep;
-use Koansu\Skeleton\ConsoleInputConnection;
-use Koansu\Skeleton\ConsoleOutputConnection;
-use Koansu\Skeleton\Contracts\InputConnection;
-
-use Koansu\Skeleton\Contracts\OutputConnection;
+use Koansu\Skeleton\ConsoleOutput;
 
 use function basename;
 use function function_exists;
@@ -24,13 +21,12 @@ use function max;
 use function mb_strlen;
 use function str_pad;
 use function str_repeat;
-
 use function strlen;
 
 use const PHP_EOL;
 use const STR_PAD_LEFT;
 
-class MigrationCommand
+class MigrationCommand implements UtilizesInput
 {
     /**
      * @var Migrator
@@ -38,24 +34,22 @@ class MigrationCommand
     protected $migrator;
 
     /**
-     * @var InputConnection
-     */
-    protected $in;
-
-    /**
-     * @var OutputConnection
+     * @var ConsoleOutput
      */
     protected $out;
 
     /**
-     * @param Migrator $migrator
-     * @param InputConnection $in
-     * @param OutputConnection $out
+     * @var Input
      */
-    public function __construct(Migrator $migrator, InputConnection $in, OutputConnection $out)
+    protected $input;
+
+    /**
+     * @param Migrator $migrator
+     * @param ConsoleOutput $out
+     */
+    public function __construct(Migrator $migrator, ConsoleOutput $out)
     {
         $this->migrator = $migrator;
-        $this->in = $in;
         $this->out = $out;
     }
 
@@ -169,6 +163,12 @@ class MigrationCommand
         return '';
     }
 
+    public function setInput(Input $input) : void
+    {
+        $this->input = $input;
+    }
+
+
     /**
      * Output a table of migrations in console.
      *
@@ -209,7 +209,7 @@ class MigrationCommand
      */
     protected function letInstall() : bool
     {
-        if (!$this->in instanceof ConsoleInputConnection) {
+        if (!$this->input instanceof ConsoleInput) {
             return false;
         }
         if (!$this->confirm('Want to install migration repository now?')) {
@@ -228,12 +228,12 @@ class MigrationCommand
      */
     protected function confirm(string $message) : bool
     {
-        if (!$this->in instanceof ConsoleInputConnection) {
+        if (!$this->input instanceof ConsoleInput) {
             return true;
         }
         $message = $message[0] == '<' ? $message : "<info>$message</info>";
         $this->line($message);
-        return $this->in->confirm();
+        return $this->input->confirm();
     }
 
     /**
@@ -305,7 +305,7 @@ class MigrationCommand
      */
     protected function line(string $string, $formatted=null, string $newLine=PHP_EOL) : void
     {
-        if ($this->out instanceof ConsoleOutputConnection) {
+        if ($this->out instanceof ConsoleOutput) {
             $this->out->line($string, $formatted, $newLine);
         }
     }

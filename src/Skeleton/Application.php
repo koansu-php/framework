@@ -7,24 +7,21 @@ namespace Koansu\Skeleton;
 
 use ArrayAccess;
 use Koansu\Core\Contracts\HasMethodHooks;
-use Koansu\DependencyInjection\Contracts\Container as ContainerContract;
+use Koansu\Core\Exceptions\KeyNotFoundException;
+use Koansu\Core\ListenerContainer;
 use Koansu\Core\Type;
 use Koansu\Core\Url;
-use Koansu\Routing\Contracts\Input;
-use Koansu\Skeleton\Contracts\InputConnection;
-use Koansu\Skeleton\Contracts\OutputConnection;
-use Koansu\Core\Exceptions\KeyNotFoundException;
 use Koansu\DependencyInjection\Container;
-use Koansu\Core\ListenerContainer;
+use Koansu\DependencyInjection\Contracts\Container as ContainerContract;
+use Koansu\Routing\Contracts\Input;
+use Koansu\Skeleton\Contracts\IOAdapter;
 use LogicException;
+use Throwable;
 use Traversable;
 
-use function get_class;
 use function in_array;
 use function is_array;
-use function is_callable;
 use function is_object;
-use function php_sapi_name;
 
 /**
  * This application is a minimal version optimized
@@ -128,11 +125,6 @@ class Application extends Container implements ContainerContract, HasMethodHooks
         self::STEP_BOOT         => false,
         self::STEP_LISTEN       => false,
     ];
-
-    /**
-     * @var ?Input
-     */
-    protected $currentInput;
 
     /**
      * @var static
@@ -498,47 +490,46 @@ class Application extends Container implements ContainerContract, HasMethodHooks
     /**
      * This is a shortcut to read from the input connection
      *
-     * @param callable $handler
+     * @param callable $io
      *
      * @return void
      *
-     * @see InputConnection::read()
+     * @see IOAdapter::read()
      */
-    public function listen(callable $handler) : void
+    public function listen(callable $io) : void
     {
+        if (is_object($io)) {
+            /** @var object $io */
+            $this->instance('io', $io);
+        }
+        if ($io instanceof IOAdapter) {
+            $this->instance(IOAdapter::class, $io);
+        }
 
         $this->boot();
 
-        $this->runStep(self::STEP_LISTEN, [$this], [ListenerContainer::BEFORE]);
+        $this->runStep(self::STEP_LISTEN, [$this, $io], [ListenerContainer::BEFORE]);
 
-        /** @var InputConnection $in */
-        $in = $this->get(InputConnection::class);
-        $this->runStep(self::STEP_LISTEN, [$this, $in], [ListenerContainer::ON]);
+        $this->runStep(self::STEP_LISTEN, [$this, $io], [ListenerContainer::ON]);
 
-        /** @var OutputConnection $out */
-        $out = $this->get(OutputConnection::class);
+        $io(function (Input $input, callable $output) {
 
-        $in->read(function (Input $input) use ($handler, $out) {
-            $this->currentInput = $input;
+            $middleware = $this->get('middleware');
+
             $this->listeners->call(self::EVENT_HANDLED, [$input], ListenerContainer::BEFORE);
-            $handler($input, $out, $this);
+
+            try {
+                $output($middleware($input, $output)); // Passing output to middleware is new
+            } catch (Throwable $e) {
+                /** @var ErrorHandler $handler */
+                $handler = $this->get(ErrorHandler::class);
+                $output($handler->handle($e, $input));
+            }
+
             $this->listeners->call(self::EVENT_HANDLED, [$input], ListenerContainer::AFTER);
         });
 
-        $this->runStep(self::STEP_LISTEN, [$this, $in, $out], [ListenerContainer::AFTER]);
-    }
-
-    /**
-     * Get the last input that was passed to the application. Be aware that due
-     * immutable input (psr-7) will create new input instances in middlewares, so
-     * maybe you must traverse the input by input->next until the last one gets
-     * returned
-     *
-     * @return Input|null
-     */
-    public function currentInput() : ?Input
-    {
-        return $this->currentInput;
+        $this->runStep(self::STEP_LISTEN, [$this, $io], [ListenerContainer::AFTER]);
     }
 
     //</editor-fold>
