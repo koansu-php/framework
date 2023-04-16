@@ -6,6 +6,11 @@
 namespace Koansu\Skeleton;
 
 use ArrayAccess;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use Koansu\Core\Contracts\HasMethodHooks;
 use Koansu\Core\Exceptions\KeyNotFoundException;
 use Koansu\Core\ListenerContainer;
@@ -18,6 +23,8 @@ use Koansu\Skeleton\Contracts\IOAdapter;
 use LogicException;
 use Throwable;
 use Traversable;
+
+use TypeError;
 
 use function in_array;
 use function is_array;
@@ -54,7 +61,7 @@ use function is_object;
  * belong to _this_ request. Then you have to pass your request just everywhere.
  *
  **/
-class Application extends Container implements ContainerContract, HasMethodHooks
+class Application extends Container implements ContainerContract, RequestHandlerInterface, HasMethodHooks
 {
     /**
      * @var string
@@ -512,24 +519,61 @@ class Application extends Container implements ContainerContract, HasMethodHooks
 
         $this->runStep(self::STEP_LISTEN, [$this, $io], [ListenerContainer::ON]);
 
-        $io(function (Input $input, callable $output) {
-
-            $middleware = $this->get('middleware');
-
-            $this->listeners->call(self::EVENT_HANDLED, [$input], ListenerContainer::BEFORE);
-
-            try {
-                $output($middleware($input, $output)); // Passing output to middleware is new
-            } catch (Throwable $e) {
-                /** @var ErrorHandler $handler */
-                $handler = $this->get(ErrorHandler::class);
-                $output($handler->handle($e, $input));
-            }
-
-            $this->listeners->call(self::EVENT_HANDLED, [$input], ListenerContainer::AFTER);
-        });
+        $io([$this, 'process']);
 
         $this->runStep(self::STEP_LISTEN, [$this, $io], [ListenerContainer::AFTER]);
+    }
+
+    /**
+     * Process one input and write and call $output with the response.
+     *
+     * @param Input $input
+     * @param callable $output
+     * @return void
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function process(Input $input, callable $output) : void
+    {
+        $middleware = $this->get('middleware');
+
+        $this->listeners->call(self::EVENT_HANDLED, [$input, $output], ListenerContainer::BEFORE);
+
+        try {
+            $output($middleware($input, $output)); // Passing output to middleware is new
+        } catch (Throwable $e) {
+            /** @var ErrorHandler $handler */
+            $handler = $this->get(ErrorHandler::class);
+            $output($handler->handle($e, $input));
+        }
+
+        $this->listeners->call(self::EVENT_HANDLED, [$input, $output], ListenerContainer::AFTER);
+    }
+
+    /**
+     * Handle a server request. It has to be instanceof input.
+     *
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    public function handle(ServerRequestInterface $request): ResponseInterface
+    {
+        if (!$request instanceof Input) {
+            throw new TypeError("I can only process " . Input::class);
+        }
+
+        $receivedResponse = null;
+
+        $output = function ($response) use (&$receivedResponse) {
+            $receivedResponse = $response;
+        };
+
+        $this->process($request, $output);
+
+        return $receivedResponse;
+
     }
 
     //</editor-fold>
